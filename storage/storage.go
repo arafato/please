@@ -30,18 +30,13 @@ type Storage struct {
 	manifestDir string
 }
 
-func New() (*Storage, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user home directory: %w", err)
-	}
-
+func New() *Storage {
+	homeDir, _ := os.UserHomeDir()
 	return &Storage{
 		homeDir:     homeDir,
 		pleaseDir:   fmt.Sprintf("%s/%s", homeDir, pleaseDir),
 		manifestDir: fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
-	}, nil
-
+	}
 }
 
 func (s *Storage) LoadSources() ([]string, error) {
@@ -76,6 +71,7 @@ func (s *Storage) DownloadManifestFiles(urls []string) {
 	p := mpb.New(mpb.WithWidth(60))
 	var wg sync.WaitGroup
 	for _, url := range urls {
+		// TODO: Check ETag - if no new version skip download
 		wg.Add(1)
 		fileName := path.Base(url)
 		go downloadManifest(url, s.ManifestPath(fileName), p, &wg)
@@ -92,24 +88,28 @@ func (s *Storage) ManifestPath(manifestName string) string {
 	return filepath.Join(s.manifestDir, manifestName)
 }
 
-func (s *Storage) Initialize() (bool, error) {
+func (s *Storage) Initialize() error {
 	if stat, err := os.Stat(s.pleaseDir); err == nil && stat.IsDir() {
-		return false, s.createSources() // guarantee a sources file
+		return s.createSources() // guarantee a sources file
 	}
 
 	fmt.Println("Initializing please for the first time...")
 
 	if err := os.MkdirAll(s.pleaseDir, 0755); err != nil {
-		return false, err
+		return err
+	}
+
+	if err := os.MkdirAll(s.manifestDir, 0755); err != nil {
+		return err
 	}
 
 	if err := s.createSources(); err != nil {
-		return false, err
+		return err
 	}
 
 	fmt.Printf("✓ Initialized please at %s\n", s.pleaseDir)
 	fmt.Printf("✓ Configured default source: %s\n", defaultSourceURL)
-	return true, nil
+	return nil
 }
 
 func (s *Storage) createSources() error {
