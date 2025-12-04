@@ -39,6 +39,21 @@ func New() *Storage {
 	}
 }
 
+func (s *Storage) GetManifestFileNames() ([]string, error) {
+	manifests, err := os.ReadDir(s.manifestDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read manifest directory: %w", err)
+	}
+
+	var files []string
+	for _, item := range manifests {
+		if !item.IsDir() && strings.HasSuffix(item.Name(), ".tar.gz") {
+			files = append(files, filepath.Join(s.manifestDir, item.Name()))
+		}
+	}
+	return files, nil
+}
+
 func (s *Storage) LoadSources() ([]string, error) {
 	file, err := os.Open(s.SourcesPath())
 	if err != nil {
