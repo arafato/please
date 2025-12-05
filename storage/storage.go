@@ -5,6 +5,7 @@ package storage
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -39,10 +40,14 @@ func New() *Storage {
 	}
 }
 
-func (s *Storage) GetManifestFileNames() ([]string, error) {
+func (s *Storage) GetManifestPaths() ([]string, error) {
 	manifests, err := os.ReadDir(s.manifestDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read manifest directory: %w", err)
+	}
+
+	if len(manifests) == 0 {
+		return nil, errors.New("No manifest files found. Please run '$ please update'.")
 	}
 
 	var files []string
