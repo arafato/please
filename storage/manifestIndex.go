@@ -40,6 +40,7 @@ func (m *ManifestArchive) iterateManifest() iter.Seq2[manifestIterator, error] {
 			yield(manifestIterator{}, err)
 		}
 		defer manifestDecoder.Close()
+		m.Namespace = manifestDecoder.namespace
 
 		// Iterate through objects
 		for manifestDecoder.decoder.More() {
@@ -58,7 +59,7 @@ func (m *ManifestArchive) iterateManifest() iter.Seq2[manifestIterator, error] {
 
 const MaxFuzzySearchResults = 10
 
-func (m *ManifestArchive) Lookup(name string) (*schema.PackageManifest, error) {
+func (m *ManifestArchive) ExactMatch(name string) (*schema.PackageManifest, error) {
 	for iter, err := range m.iterateManifest() {
 		if err != nil {
 			return nil, fmt.Errorf("iteration failed: %w", err)
@@ -68,7 +69,7 @@ func (m *ManifestArchive) Lookup(name string) (*schema.PackageManifest, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("object with name '%s' not found at expected offset %d", name, offset)
+	return nil, fmt.Errorf("object with name '%s' not found", name)
 }
 
 type candidate struct {

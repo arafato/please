@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/arafat/please/storage"
-	"github.com/arafat/please/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -48,24 +47,6 @@ var updateCmd = &cobra.Command{
 		}
 		fmt.Println("Updating cache...")
 		s.DownloadManifestFiles(manifestURLs)
-
-		files, err := s.GetManifestFileNames()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error getting manifest file names: %v\n", err)
-			os.Exit(1)
-		}
-
-		for _, file := range files {
-			index, err := storage.BuildIndex(file)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error building index for %s: %v\n", file, err)
-				os.Exit(1)
-			}
-			if err := storage.SaveIndex(index, utils.ReplaceTarballWithIndex(file)); err != nil {
-				fmt.Fprintf(os.Stderr, "Error saving index for %s: %v\n", file, err)
-				os.Exit(1)
-			}
-		}
 	},
 }
 
