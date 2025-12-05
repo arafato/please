@@ -26,17 +26,19 @@ const (
 )
 
 type Storage struct {
-	homeDir     string
-	pleaseDir   string
-	manifestDir string
+	homeDir      string
+	pleaseDir    string
+	manifestDir  string
+	ManifestCore string
 }
 
 func New() *Storage {
 	homeDir, _ := os.UserHomeDir()
 	return &Storage{
-		homeDir:     homeDir,
-		pleaseDir:   fmt.Sprintf("%s/%s", homeDir, pleaseDir),
-		manifestDir: fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
+		homeDir:      homeDir,
+		pleaseDir:    fmt.Sprintf("%s/%s", homeDir, pleaseDir),
+		manifestDir:  fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
+		ManifestCore: fmt.Sprintf("%s/%s/%s/%s", homeDir, pleaseDir, "manifests", "manifest-core.tar.gz"),
 	}
 }
 

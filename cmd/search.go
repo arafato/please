@@ -14,7 +14,7 @@ import (
 var fuzzySearch bool = false
 
 func init() {
-	SearchCmd.Flags().BoolVar(&fuzzySearch, "fuzzy", true, "Fuzzy search (true, default) or exact match search (false)")
+	SearchCmd.Flags().BoolVar(&fuzzySearch, "fuzzy", true, "Fuzzy search (true) or exact match search (false)")
 }
 
 var SearchCmd = &cobra.Command{
@@ -106,7 +106,7 @@ var SearchCmd = &cobra.Command{
 		for _, namespace := range namespaces {
 			fmt.Printf("Namespace: %s\n", namespace)
 			for _, manifest := range results[namespace] {
-				fmt.Printf("  - %v\n", manifest.Name)
+				fmt.Printf("  - %v [%v]\n", manifest.Name, manifest.DefaultVersion)
 			}
 		}
 	},
