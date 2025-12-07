@@ -26,19 +26,21 @@ const (
 )
 
 type Storage struct {
-	homeDir      string
-	pleaseDir    string
-	manifestDir  string
-	ManifestCore string
+	homeDir         string
+	PleaseDir       string
+	manifestDir     string
+	ManifestCore    string
+	EnvironmentPath string
 }
 
 func New() *Storage {
 	homeDir, _ := os.UserHomeDir()
 	return &Storage{
-		homeDir:      homeDir,
-		pleaseDir:    fmt.Sprintf("%s/%s", homeDir, pleaseDir),
-		manifestDir:  fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
-		ManifestCore: fmt.Sprintf("%s/%s/%s/%s", homeDir, pleaseDir, "manifests", "manifest-core.tar.gz"),
+		homeDir:         homeDir,
+		PleaseDir:       fmt.Sprintf("%s/%s", homeDir, pleaseDir),
+		manifestDir:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
+		ManifestCore:    fmt.Sprintf("%s/%s/%s/%s", homeDir, pleaseDir, "manifests", "manifest-core.tar.gz"),
+		EnvironmentPath: fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "env.json"),
 	}
 }
 
@@ -103,7 +105,7 @@ func (s *Storage) DownloadManifestFiles(urls []string) {
 }
 
 func (s *Storage) SourcesPath() string {
-	return filepath.Join(s.pleaseDir, sourcesFile)
+	return filepath.Join(s.PleaseDir, sourcesFile)
 }
 
 func (s *Storage) ManifestPath(manifestName string) string {
@@ -111,20 +113,14 @@ func (s *Storage) ManifestPath(manifestName string) string {
 }
 
 func (s *Storage) IsInitialized() bool {
-	if stat, err := os.Stat(s.pleaseDir); err == nil && stat.IsDir() {
+	if stat, err := os.Stat(s.PleaseDir); err == nil && stat.IsDir() {
 		return true
 	}
 	return false
 }
 
 func (s *Storage) Initialize() error {
-	if stat, err := os.Stat(s.pleaseDir); err == nil && stat.IsDir() {
-		return s.createSources() // guarantee a sources file
-	}
-
-	fmt.Println("Initializing please for the first time...")
-
-	if err := os.MkdirAll(s.pleaseDir, 0755); err != nil {
+	if err := os.MkdirAll(s.PleaseDir, 0755); err != nil {
 		return err
 	}
 
@@ -136,8 +132,6 @@ func (s *Storage) Initialize() error {
 		return err
 	}
 
-	fmt.Printf("✓ Initialized please at %s\n", s.pleaseDir)
-	fmt.Printf("✓ Configured default source: %s\n", defaultSourceURL)
 	return nil
 }
 

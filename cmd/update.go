@@ -14,10 +14,6 @@ var UpdateCmd = &cobra.Command{
 	Long:  `Updates the local cache by pulling the latest manifests defined in .please/sources`,
 	Run: func(cmd *cobra.Command, args []string) {
 		s := storage.New()
-		if err := s.Initialize(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error initializing please: %v\n", err)
-			os.Exit(1)
-		}
 		manifestURLs, err := s.LoadSources()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error loading sources: %v\n", err)
