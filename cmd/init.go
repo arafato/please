@@ -36,6 +36,14 @@ var InitCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		manifestURLs, err := s.LoadSources()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading sources: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("Updating cache...")
+		s.DownloadManifestFiles(manifestURLs)
+
 		fmt.Printf("✅ Initialized please at %s\n", s.PleasePath)
 	},
 }
