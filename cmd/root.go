@@ -1,6 +1,13 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+	"os"
+
+	"github.com/arafat/please/storage"
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
+)
 
 var RootCmd = &cobra.Command{
 	Use:   "please",
@@ -18,6 +25,26 @@ var RootCmd = &cobra.Command{
 
 	Install tools from curated container images and switch between versions
 	seamlessly without affecting your system installation.`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if cmd.Name() == "init" {
+			return nil
+		}
+		s := storage.New()
+		if s.IsInitialized() {
+			return nil
+		}
+
+		cmd.SilenceUsage = true
+		cmd.SilenceErrors = true
+
+		red := color.New(color.FgRed, color.Bold).SprintFunc()
+		yellow := color.New(color.FgHiYellow).SprintFunc()
+		fmt.Printf("%s %s\n", red("❌"), red("please is not initialized yet."))
+		fmt.Printf("%s %s\n", yellow("💡"), yellow("Run: please init"))
+
+		os.Exit(1)
+		return nil
+	},
 }
 
 func init() {

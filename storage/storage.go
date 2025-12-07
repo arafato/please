@@ -110,6 +110,13 @@ func (s *Storage) ManifestPath(manifestName string) string {
 	return filepath.Join(s.manifestDir, manifestName)
 }
 
+func (s *Storage) IsInitialized() bool {
+	if stat, err := os.Stat(s.pleaseDir); err == nil && stat.IsDir() {
+		return true
+	}
+	return false
+}
+
 func (s *Storage) Initialize() error {
 	if stat, err := os.Stat(s.pleaseDir); err == nil && stat.IsDir() {
 		return s.createSources() // guarantee a sources file
