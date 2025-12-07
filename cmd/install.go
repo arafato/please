@@ -40,7 +40,7 @@ var InstallCmd = &cobra.Command{
 		// TODO: when multiple namespaces are supported
 		// we need to do the according changes here since we
 		// need to search in a different manifest archive
-		ma := storage.NewManifestArchive(s.ManifestCore)
+		ma := storage.NewManifestArchive(s.ManifestCoreFile)
 		pm, err := ma.ExactMatch(pkg)
 		if err != nil {
 			fmt.Println(err)

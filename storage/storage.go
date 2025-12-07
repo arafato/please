@@ -26,26 +26,26 @@ const (
 )
 
 type Storage struct {
-	homeDir         string
-	PleaseDir       string
-	manifestDir     string
-	ManifestCore    string
-	EnvironmentPath string
+	homePath         string
+	PleasePath       string
+	manifestPath     string
+	ManifestCoreFile string
+	EnvironmentPath  string
 }
 
 func New() *Storage {
 	homeDir, _ := os.UserHomeDir()
 	return &Storage{
-		homeDir:         homeDir,
-		PleaseDir:       fmt.Sprintf("%s/%s", homeDir, pleaseDir),
-		manifestDir:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
-		ManifestCore:    fmt.Sprintf("%s/%s/%s/%s", homeDir, pleaseDir, "manifests", "manifest-core.tar.gz"),
-		EnvironmentPath: fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "env.json"),
+		homePath:         homeDir,
+		PleasePath:       fmt.Sprintf("%s/%s", homeDir, pleaseDir),
+		manifestPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
+		ManifestCoreFile: fmt.Sprintf("%s/%s/%s/%s", homeDir, pleaseDir, "manifests", "manifest-core.tar.gz"),
+		EnvironmentPath:  fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "env.json"),
 	}
 }
 
 func (s *Storage) GetManifestPaths() ([]string, error) {
-	manifests, err := os.ReadDir(s.manifestDir)
+	manifests, err := os.ReadDir(s.manifestPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read manifest directory: %w", err)
 	}
@@ -57,7 +57,7 @@ func (s *Storage) GetManifestPaths() ([]string, error) {
 	var files []string
 	for _, item := range manifests {
 		if !item.IsDir() && strings.HasSuffix(item.Name(), ".tar.gz") {
-			files = append(files, filepath.Join(s.manifestDir, item.Name()))
+			files = append(files, filepath.Join(s.manifestPath, item.Name()))
 		}
 	}
 	return files, nil
@@ -105,26 +105,26 @@ func (s *Storage) DownloadManifestFiles(urls []string) {
 }
 
 func (s *Storage) SourcesPath() string {
-	return filepath.Join(s.PleaseDir, sourcesFile)
+	return filepath.Join(s.PleasePath, sourcesFile)
 }
 
 func (s *Storage) ManifestPath(manifestName string) string {
-	return filepath.Join(s.manifestDir, manifestName)
+	return filepath.Join(s.manifestPath, manifestName)
 }
 
 func (s *Storage) IsInitialized() bool {
-	if stat, err := os.Stat(s.PleaseDir); err == nil && stat.IsDir() {
+	if stat, err := os.Stat(s.PleasePath); err == nil && stat.IsDir() {
 		return true
 	}
 	return false
 }
 
 func (s *Storage) Initialize() error {
-	if err := os.MkdirAll(s.PleaseDir, 0755); err != nil {
+	if err := os.MkdirAll(s.PleasePath, 0755); err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(s.manifestDir, 0755); err != nil {
+	if err := os.MkdirAll(s.manifestPath, 0755); err != nil {
 		return err
 	}
 

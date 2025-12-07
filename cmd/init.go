@@ -36,6 +36,6 @@ var InitCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Printf("✅ Initialized please at %s\n", s.PleaseDir)
+		fmt.Printf("✅ Initialized please at %s\n", s.PleasePath)
 	},
 }
