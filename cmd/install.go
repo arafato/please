@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/arafat/please/container"
@@ -46,26 +47,41 @@ var InstallCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
+		if version == "" {
+			version = pm.DefaultVersion
+		}
+		image := pm.Image
+
+		env, err := storage.LoadEnvironmentDefinitions(s)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading environment: %v\n", err)
+			return
+		}
+		activeEnvironment := env.GetActiveEnvironment()
+		if env.IsPackageInstalled(activeEnvironment, pkg, version) {
+			fmt.Printf("Package %s:%s is already installed in active environment [%s] \n", pkg, version, activeEnvironment)
+			return
+		}
+
 		client, err := container.NewClient()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-
-		if version == "" {
-			version = pm.DefaultVersion
-		}
-
-		image := pm.Image
-
 		err = client.Install(context.TODO(), image, version)
 		if err != nil {
 			if err.Error() == "exit status 2" {
+				// NOOP - all good and expected error
+			} else {
+				fmt.Println(err)
 				return
 			}
-			fmt.Println(err)
-			return
 		}
+
+		env.AddPackage(activeEnvironment, pkg, version)
+		env.SaveEnvironment(s)
+
+		fmt.Printf("✅ Successfully installed %s:%s in environment [%s]\n", pkg, version, activeEnvironment)
 	},
 }
 

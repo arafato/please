@@ -40,7 +40,28 @@ func (e *Environment) SaveEnvironment(s *Storage) error {
 	return nil
 }
 
+func (e *Environment) IsPackageInstalled(envName, packageName, version string) bool {
+	env, ok := e.envs.Environments[envName]
+	if !ok {
+		return false
+	}
+
+	if env.Packages == nil {
+		return false
+	}
+
+	installedVersion, ok := env.Packages[packageName]
+	if !ok {
+		return false
+	}
+
+	return installedVersion == version
+}
+
 func (e *Environment) AddPackage(envName, packageName, version string) error {
+	if envName == "" {
+		envName = "default"
+	}
 	env, ok := e.envs.Environments[envName]
 	if !ok {
 		return fmt.Errorf("environment %q does not exist", envName)
