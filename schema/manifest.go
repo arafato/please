@@ -14,9 +14,11 @@ type PackageManifest struct {
 	Versions         []string          `json:"versions,omitempty"`
 	VersionDiscovery *VersionDiscovery `json:"version_discovery,omitempty"`
 
-	DefaultVersion string        `json:"default_version"`
-	Script         string        `json:"script"`
-	ContainerArgs  ContainerArgs `json:"container_args"`
+	DefaultVersion  string        `json:"default_version"`
+	Script          string        `json:"script"`
+	Platform        string        `json:"platform"`
+	ApplicationArgs []string      `json:"application_args"`
+	ContainerArgs   ContainerArgs `json:"container_args"`
 }
 
 // ContainerArgs maps directly to the container_args JSON object.
