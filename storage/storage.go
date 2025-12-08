@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/arafat/please/artifacts"
 	"github.com/vbauerster/mpb/v8"
 	"github.com/vbauerster/mpb/v8/decor"
 )
@@ -46,6 +47,38 @@ func New() *Storage {
 		BinPath:          fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "bin"),
 		VersionsPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "versions"),
 	}
+}
+
+func (s *Storage) DeployScript(d artifacts.Deployable, pkg, version string) (string, error) {
+	installationFullPath := fmt.Sprintf("%s/%s/%s/%s.sh", s.VersionsPath, pkg, version, pkg)
+	installationPath := fmt.Sprintf("%s/%s/%s", s.VersionsPath, pkg, version)
+
+	err := os.MkdirAll(installationPath, 0755)
+	if err != nil {
+		return "", fmt.Errorf("Error creating directories:%w", err)
+	}
+	if err := d.WriteScript(installationFullPath); err != nil {
+		return "", fmt.Errorf("failed to deploy script: %w", err)
+	}
+	return installationFullPath, nil
+}
+
+func (s *Storage) CreateSymlink(pkg, targetVersion string) error {
+	targetPath := fmt.Sprintf("%s/%s/%s/%s.sh", s.VersionsPath, pkg, targetVersion, pkg)
+	symlinkPath := fmt.Sprintf("%s/%s", s.BinPath, pkg)
+
+	// Remove existing file/symlink if it exists
+	if _, err := os.Lstat(symlinkPath); err == nil {
+		err := os.Remove(symlinkPath)
+		if err != nil {
+			return fmt.Errorf("Error removing existing symlink:%w", err)
+		}
+	}
+
+	if err := os.Symlink(targetPath, symlinkPath); err != nil {
+		return fmt.Errorf("failed to create symlink in %s: %w", symlinkPath, err)
+	}
+	return nil
 }
 
 func (s *Storage) GetManifestPaths() ([]string, error) {

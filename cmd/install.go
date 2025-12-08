@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/arafat/please/artifacts"
 	"github.com/arafat/please/container"
 	"github.com/arafat/please/storage"
 	"github.com/spf13/cobra"
@@ -27,6 +28,7 @@ var InstallCmd = &cobra.Command{
 		}
 		return nil
 	},
+	// TODO: This entire installation logic needs to be refactored into package appmanagement (installer, deinstaller)
 	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
 		s := storage.New()
@@ -80,6 +82,21 @@ var InstallCmd = &cobra.Command{
 
 		env.AddPackage(activeEnvironment, pkg, version)
 		env.SaveEnvironment(s)
+
+		if pm.Script == "standard" {
+			stdScript := &artifacts.StandardScript{
+				ContainerArgs: pm.ContainerArgs,
+				Image:         image,
+				Version:       version,
+				Application:   pkg,
+			}
+
+			s.DeployScript(stdScript, pkg, version)
+			s.CreateSymlink(pkg, version)
+		} else {
+			fmt.Printf("Script type [%s] is not supported.", pm.Script)
+			return
+		}
 
 		fmt.Printf("✅ Successfully installed %s:%s in environment [%s]\n", pkg, version, activeEnvironment)
 	},
