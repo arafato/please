@@ -9,17 +9,18 @@ import (
 
 type StandardScript struct {
 	schema.ContainerArgs
-	Image       string
-	Version     string
-	Application string
+	ApplicationArgs []string
+	Image           string
+	Version         string
+	Application     string
 }
 
 const standardScriptTemplate = `#!/usr/bin/env bash
 container run{{range .DNS}} --dns {{.}}{{end}}{{range .AdditionalFlags}} {{.}}{{end}} --rm{{range .Volumes}} \
   --volume {{.}}{{end}}{{if .WorkDir}} \
   --workdir {{.WorkDir}}{{end}} \
-  {{.Image}}:{{.Version}} \
-  {{.Application}} "$@"
+  {{.Image}}:{{.Version}}{{if .ApplicationArgs}}{{range .ApplicationArgs}} \
+  {{.}}{{end}}{{end}} "$@"
 `
 
 func (s *StandardScript) WriteScript(path string) error {
