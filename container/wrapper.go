@@ -39,8 +39,14 @@ func (c *Client) Run(ctx context.Context, args ...string) ([]byte, error) {
 	return cmd.CombinedOutput()
 }
 
-func (c *Client) Install(ctx context.Context, image string, version string) error {
-	cmd := exec.CommandContext(ctx, c.path, "run", fmt.Sprintf("%s:%s", image, version))
+func (c *Client) Install(ctx context.Context, image string, version string, platform string) error {
+	var cmd *exec.Cmd
+
+	if platform != "" {
+		cmd = exec.CommandContext(ctx, c.path, "run", "--platform", fmt.Sprintf("%s", platform), fmt.Sprintf("%s:%s", image, version))
+	} else {
+		cmd = exec.CommandContext(ctx, c.path, "run", fmt.Sprintf("%s:%s", image, version))
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
