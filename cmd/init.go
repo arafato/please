@@ -7,6 +7,7 @@ import (
 
 	"github.com/arafat/please/schema"
 	"github.com/arafat/please/storage"
+	"github.com/arafat/please/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -43,6 +44,10 @@ var InitCmd = &cobra.Command{
 		}
 		fmt.Println("Updating cache...")
 		s.DownloadManifestFiles(manifestURLs)
+
+		fmt.Printf("Adding %s to $PATH\n", s.BinPath)
+		utils.AddToUserPath(s.BinPath)
+		fmt.Println("Please close and reopen your terminal to apply the changes.")
 
 		fmt.Printf("✅ Initialized please at %s\n", s.PleasePath)
 	},

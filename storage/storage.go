@@ -31,6 +31,8 @@ type Storage struct {
 	manifestPath     string
 	ManifestCoreFile string
 	EnvironmentPath  string
+	BinPath          string
+	VersionsPath     string
 }
 
 func New() *Storage {
@@ -41,6 +43,8 @@ func New() *Storage {
 		manifestPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
 		ManifestCoreFile: fmt.Sprintf("%s/%s/%s/%s", homeDir, pleaseDir, "manifests", "manifest-core.tar.gz"),
 		EnvironmentPath:  fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "env.json"),
+		BinPath:          fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "bin"),
+		VersionsPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "versions"),
 	}
 }
 
@@ -125,6 +129,14 @@ func (s *Storage) Initialize() error {
 	}
 
 	if err := os.MkdirAll(s.manifestPath, 0755); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(s.BinPath, 0755); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(s.VersionsPath, 0755); err != nil {
 		return err
 	}
 
