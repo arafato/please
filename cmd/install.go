@@ -70,7 +70,7 @@ var InstallCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		err = client.Install(context.TODO(), image, version)
+		err = client.Install(context.TODO(), image, version, pm.Platform)
 		if err != nil {
 			if err.Error() == "exit status 2" {
 				// NOOP - all good and expected error
@@ -85,10 +85,11 @@ var InstallCmd = &cobra.Command{
 
 		if pm.Script == "standard" {
 			stdScript := &artifacts.StandardScript{
-				ContainerArgs: pm.ContainerArgs,
-				Image:         image,
-				Version:       version,
-				Application:   pkg,
+				ContainerArgs:   pm.ContainerArgs,
+				ApplicationArgs: pm.ApplicationArgs,
+				Image:           image,
+				Version:         version,
+				Application:     pkg,
 			}
 
 			s.DeployScript(stdScript, pkg, version)
