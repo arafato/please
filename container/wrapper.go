@@ -43,9 +43,9 @@ func (c *Client) Install(ctx context.Context, image string, version string, plat
 	var cmd *exec.Cmd
 
 	if platform != "" {
-		cmd = exec.CommandContext(ctx, c.path, "run", "--platform", fmt.Sprintf("%s", platform), fmt.Sprintf("%s:%s", image, version))
+		cmd = exec.CommandContext(ctx, c.path, "image", "pull", "--platform", fmt.Sprintf("%s", platform), fmt.Sprintf("%s:%s", image, version))
 	} else {
-		cmd = exec.CommandContext(ctx, c.path, "run", fmt.Sprintf("%s:%s", image, version))
+		cmd = exec.CommandContext(ctx, c.path, "image", "pull", fmt.Sprintf("%s:%s", image, version))
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
