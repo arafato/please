@@ -20,7 +20,7 @@ container run{{range .DNS}} --dns {{.}}{{end}}{{range .AdditionalFlags}} {{.}}{{
   --volume {{.}}{{end}}{{if .WorkDir}} \
   --workdir {{.WorkDir}}{{end}} \
   {{.Image}}:{{.Version}}{{if .ApplicationArgs}}{{range .ApplicationArgs}} \
-  {{.}}{{end}}{{end}} "$@"
+  {{.}}{{end}}{{end}} "$@" 2>/dev/null
 `
 
 func (s *StandardScript) WriteScript(path string) error {
