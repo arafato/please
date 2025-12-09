@@ -9,6 +9,7 @@ import (
 	"github.com/arafat/please/artifacts"
 	"github.com/arafat/please/container"
 	"github.com/arafat/please/storage"
+	"github.com/arafat/please/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,8 @@ var InstallCmd = &cobra.Command{
 			return
 		}
 		if version == "" {
-			version = pm.DefaultVersion
+			version, err = utils.SelectFromOptions(pm.Versions, "Select a version")
+			// version = pm.DefaultVersion
 		}
 		image := pm.Image
 
