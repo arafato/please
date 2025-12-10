@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/arafat/please/storage"
+	"github.com/arafat/please/environment"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ var RootCmd = &cobra.Command{
 		if cmd.Name() == "init" {
 			return nil
 		}
-		s := storage.New()
+		s := environment.New()
 		if s.IsInitialized() {
 			return nil
 		}

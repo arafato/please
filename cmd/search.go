@@ -6,8 +6,8 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/arafat/please/environment"
 	"github.com/arafat/please/schema"
-	"github.com/arafat/please/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -29,10 +29,10 @@ var SearchCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
-		s := storage.New()
-		s.Initialize()
+		e := environment.New()
+		e.Initialize()
 
-		manifestPaths, err := s.GetManifestPaths()
+		manifestPaths, err := e.GetManifestPaths()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -48,11 +48,11 @@ var SearchCmd = &cobra.Command{
 			go func(p string) {
 				defer wg.Done()
 
-				archive := storage.NewManifestArchive(path)
+				archive := environment.NewManifestArchive(path)
 				var res []schema.PackageManifest
 				var err error
 				if fuzzySearch {
-					res, err = archive.FuzzySearch(packageName, storage.MaxFuzzySearchResults)
+					res, err = archive.FuzzySearch(packageName, environment.MaxFuzzySearchResults)
 				} else {
 					match, err := archive.ExactMatch(packageName)
 					if err == nil {

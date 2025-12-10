@@ -1,21 +1,21 @@
 package schema
 
-type EnvironmentDefinitions struct {
-	Environments      map[string]*Environment `json:"environments"`
-	ActiveEnvironment string                  `json:"activeEnvironment"`
+type BundleDefinitions struct {
+	Bundles      map[string]*Bundle `json:"environments"`
+	ActiveBundle string             `json:"activeEnvironment"`
 }
 
-type Environment struct {
+type Bundle struct {
 	Description string            `json:"description"`
 	Packages    map[string]string `json:"packages"`
 }
 
-func NewDefaultEnvironment() *EnvironmentDefinitions {
-	return &EnvironmentDefinitions{
-		ActiveEnvironment: "default",
-		Environments: map[string]*Environment{
+func NewDefaultBundle() *BundleDefinitions {
+	return &BundleDefinitions{
+		ActiveBundle: "default",
+		Bundles: map[string]*Bundle{
 			"default": {
-				Description: "Default environment created by please",
+				Description: "Default bundle created by please",
 				Packages:    map[string]string{},
 			},
 		},

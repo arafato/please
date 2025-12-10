@@ -8,7 +8,7 @@ import (
 
 	"github.com/arafat/please/artifacts"
 	"github.com/arafat/please/container"
-	"github.com/arafat/please/storage"
+	"github.com/arafat/please/environment"
 	"github.com/arafat/please/utils"
 	"github.com/spf13/cobra"
 )
@@ -32,8 +32,8 @@ var InstallCmd = &cobra.Command{
 	// TODO: This entire installation logic needs to be refactored into package appmanagement (installer, deinstaller)
 	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
-		s := storage.New()
-		s.Initialize()
+		e := environment.New()
+		e.Initialize()
 
 		namespace, pkg, version := parseIdentifier(packageName)
 
@@ -44,7 +44,7 @@ var InstallCmd = &cobra.Command{
 		// TODO: when multiple namespaces are supported
 		// we need to do the according changes here since we
 		// need to search in a different manifest archive
-		ma := storage.NewManifestArchive(s.ManifestCoreFile)
+		ma := environment.NewManifestArchive(e.ManifestCoreFile)
 		pm, err := ma.ExactMatch(pkg)
 		if err != nil {
 			fmt.Println(err)
@@ -56,14 +56,14 @@ var InstallCmd = &cobra.Command{
 		}
 		image := pm.Image
 
-		env, err := storage.LoadEnvironmentDefinitions(s)
+		env, err := environment.LoadBundleDefinitions(e)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error loading environment: %v\n", err)
 			return
 		}
-		activeEnvironment := env.GetActiveEnvironment()
-		if env.IsPackageInstalled(activeEnvironment, pkg, version) {
-			fmt.Printf("Package %s:%s is already installed in active environment [%s] \n", pkg, version, activeEnvironment)
+		activeBundle := env.GetActiveBundle()
+		if env.IsPackageInstalled(activeBundle, pkg, version) {
+			fmt.Printf("Package %s:%s is already installed in active environment [%s] \n", pkg, version, activeBundle)
 			return
 		}
 
@@ -82,8 +82,8 @@ var InstallCmd = &cobra.Command{
 			}
 		}
 
-		env.AddPackage(activeEnvironment, pkg, version)
-		env.SaveEnvironment(s)
+		env.AddPackage(activeBundle, pkg, version)
+		env.SaveBundle(e)
 
 		if pm.Script == "standard" {
 			stdScript := &artifacts.StandardScript{
@@ -94,14 +94,14 @@ var InstallCmd = &cobra.Command{
 				Application:     pkg,
 			}
 
-			s.DeployScript(stdScript, pkg, version)
-			s.CreateSymlink(pkg, version)
+			e.DeployScript(stdScript, pkg, version)
+			e.CreateSymlink(pkg, version)
 		} else {
 			fmt.Printf("Script type [%s] is not supported.", pm.Script)
 			return
 		}
 
-		fmt.Printf("✅ Successfully installed %s:%s in environment [%s]\n", pkg, version, activeEnvironment)
+		fmt.Printf("✅ Successfully installed %s:%s in bundle [%s]\n", pkg, version, activeBundle)
 	},
 }
 

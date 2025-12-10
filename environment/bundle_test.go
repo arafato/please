@@ -1,4 +1,4 @@
-package storage
+package environment
 
 import (
 	"encoding/json"
@@ -15,9 +15,9 @@ func TestLoadEnvironmentDefinitions(t *testing.T) {
 		tmpDir := t.TempDir()
 		envPath := filepath.Join(tmpDir, "environments.json")
 
-		envDefs := schema.EnvironmentDefinitions{
-			ActiveEnvironment: "dev",
-			Environments: map[string]*schema.Environment{
+		envDefs := schema.BundleDefinitions{
+			ActiveBundle: "dev",
+			Bundles: map[string]*schema.Bundle{
 				"dev": {
 					Packages: map[string]string{"pkg1": "v1.0.0"},
 				},
@@ -29,24 +29,24 @@ func TestLoadEnvironmentDefinitions(t *testing.T) {
 			t.Fatalf("setup failed: %v", err)
 		}
 
-		s := &Storage{EnvironmentPath: envPath}
+		s := &Environment{EnvironmentPath: envPath}
 
 		// Execute
-		env, err := LoadEnvironmentDefinitions(s)
+		env, err := LoadBundleDefinitions(s)
 
 		// Assert
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.ActiveEnvironment != "dev" {
-			t.Errorf("expected ActiveEnvironment=dev, got %s", env.envs.ActiveEnvironment)
+		if env.envs.ActiveBundle != "dev" {
+			t.Errorf("expected ActiveEnvironment=dev, got %s", env.envs.ActiveBundle)
 		}
 	})
 
 	t.Run("file not found", func(t *testing.T) {
-		s := &Storage{EnvironmentPath: "/nonexistent/path.json"}
+		s := &Environment{EnvironmentPath: "/nonexistent/path.json"}
 
-		env, err := LoadEnvironmentDefinitions(s)
+		env, err := LoadBundleDefinitions(s)
 
 		if err == nil {
 			t.Fatal("expected error, got nil")
@@ -65,9 +65,9 @@ func TestLoadEnvironmentDefinitions(t *testing.T) {
 			t.Fatalf("setup failed: %v", err)
 		}
 
-		s := &Storage{EnvironmentPath: envPath}
+		s := &Environment{EnvironmentPath: envPath}
 
-		env, err := LoadEnvironmentDefinitions(s)
+		env, err := LoadBundleDefinitions(s)
 
 		if err == nil {
 			t.Fatal("expected error, got nil")
@@ -78,22 +78,22 @@ func TestLoadEnvironmentDefinitions(t *testing.T) {
 	})
 }
 
-func TestSaveEnvironment(t *testing.T) {
+func TestSaveBundle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		envPath := filepath.Join(tmpDir, "environments.json")
 
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				ActiveEnvironment: "prod",
-				Environments: map[string]*schema.Environment{
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				ActiveBundle: "prod",
+				Bundles: map[string]*schema.Bundle{
 					"prod": {Packages: map[string]string{"pkg1": "v2.0.0"}},
 				},
 			},
 		}
-		s := &Storage{EnvironmentPath: envPath}
+		s := &Environment{EnvironmentPath: envPath}
 
-		err := env.SaveEnvironment(s)
+		err := env.SaveBundle(s)
 
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
@@ -105,23 +105,23 @@ func TestSaveEnvironment(t *testing.T) {
 			t.Fatalf("failed to read saved file: %v", err)
 		}
 
-		var loaded schema.EnvironmentDefinitions
+		var loaded schema.BundleDefinitions
 		if err := json.Unmarshal(data, &loaded); err != nil {
 			t.Fatalf("failed to unmarshal saved data: %v", err)
 		}
 
-		if loaded.ActiveEnvironment != "prod" {
-			t.Errorf("expected ActiveEnvironment=prod, got %s", loaded.ActiveEnvironment)
+		if loaded.ActiveBundle != "prod" {
+			t.Errorf("expected ActiveEnvironment=prod, got %s", loaded.ActiveBundle)
 		}
 	})
 
 	t.Run("invalid path", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{},
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{},
 		}
-		s := &Storage{EnvironmentPath: "/invalid/path/file.json"}
+		s := &Environment{EnvironmentPath: "/invalid/path/file.json"}
 
-		err := env.SaveEnvironment(s)
+		err := env.SaveBundle(s)
 
 		if err == nil {
 			t.Fatal("expected error, got nil")
@@ -131,9 +131,9 @@ func TestSaveEnvironment(t *testing.T) {
 
 func TestAddPackage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				Environments: map[string]*schema.Environment{
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				Bundles: map[string]*schema.Bundle{
 					"dev": {Packages: map[string]string{}},
 				},
 			},
@@ -144,15 +144,15 @@ func TestAddPackage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.Environments["dev"].Packages["newpkg"] != "v1.0.0" {
+		if env.envs.Bundles["dev"].Packages["newpkg"] != "v1.0.0" {
 			t.Error("package was not added correctly")
 		}
 	})
 
-	t.Run("environment not found", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				Environments: map[string]*schema.Environment{},
+	t.Run("bundle not found", func(t *testing.T) {
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				Bundles: map[string]*schema.Bundle{},
 			},
 		}
 
@@ -164,9 +164,9 @@ func TestAddPackage(t *testing.T) {
 	})
 
 	t.Run("nil packages map", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				Environments: map[string]*schema.Environment{
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				Bundles: map[string]*schema.Bundle{
 					"dev": {Packages: nil},
 				},
 			},
@@ -177,44 +177,44 @@ func TestAddPackage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.Environments["dev"].Packages["pkg"] != "v1.0.0" {
+		if env.envs.Bundles["dev"].Packages["pkg"] != "v1.0.0" {
 			t.Error("package was not added correctly")
 		}
 	})
 }
 
-func TestSetActiveEnvironment(t *testing.T) {
+func TestSetActiveBundle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				ActiveEnvironment: "dev",
-				Environments: map[string]*schema.Environment{
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				ActiveBundle: "dev",
+				Bundles: map[string]*schema.Bundle{
 					"dev":  {},
 					"prod": {},
 				},
 			},
 		}
 
-		err := env.SetActiveEnvironment("prod")
+		err := env.SetActiveBundle("prod")
 
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.ActiveEnvironment != "prod" {
-			t.Errorf("expected ActiveEnvironment=prod, got %s", env.envs.ActiveEnvironment)
+		if env.envs.ActiveBundle != "prod" {
+			t.Errorf("expected ActiveBundle=prod, got %s", env.envs.ActiveBundle)
 		}
 	})
 
-	t.Run("environment not found", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				Environments: map[string]*schema.Environment{
+	t.Run("bundle not found", func(t *testing.T) {
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				Bundles: map[string]*schema.Bundle{
 					"dev": {},
 				},
 			},
 		}
 
-		err := env.SetActiveEnvironment("nonexistent")
+		err := env.SetActiveBundle("nonexistent")
 
 		if err == nil {
 			t.Fatal("expected error, got nil")
@@ -222,24 +222,24 @@ func TestSetActiveEnvironment(t *testing.T) {
 	})
 }
 
-func TestGetActiveEnvironment(t *testing.T) {
-	env := &Environment{
-		envs: &schema.EnvironmentDefinitions{
-			ActiveEnvironment: "staging",
+func TestGetActiveBundle(t *testing.T) {
+	env := &Bundle{
+		envs: &schema.BundleDefinitions{
+			ActiveBundle: "staging",
 		},
 	}
 
-	active := env.GetActiveEnvironment()
+	active := env.GetActiveBundle()
 
 	if active != "staging" {
 		t.Errorf("expected staging, got %s", active)
 	}
 }
 
-func TestListEnvironments(t *testing.T) {
-	env := &Environment{
-		envs: &schema.EnvironmentDefinitions{
-			Environments: map[string]*schema.Environment{
+func TestListBundle(t *testing.T) {
+	env := &Bundle{
+		envs: &schema.BundleDefinitions{
+			Bundles: map[string]*schema.Bundle{
 				"dev":     {},
 				"staging": {},
 				"prod":    {},
@@ -247,10 +247,10 @@ func TestListEnvironments(t *testing.T) {
 		},
 	}
 
-	names := env.ListEnvironments()
+	names := env.ListBundles()
 
 	if len(names) != 3 {
-		t.Errorf("expected 3 environments, got %d", len(names))
+		t.Errorf("expected 3 bundles, got %d", len(names))
 	}
 
 	// Check all expected names are present
@@ -262,44 +262,44 @@ func TestListEnvironments(t *testing.T) {
 	}
 	for name, found := range expected {
 		if !found {
-			t.Errorf("expected environment %s not found", name)
+			t.Errorf("expected bundle %s not found", name)
 		}
 	}
 }
 
-func TestAddEnvironment(t *testing.T) {
+func TestAddBundle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				Environments: map[string]*schema.Environment{
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				Bundles: map[string]*schema.Bundle{
 					"dev": {},
 				},
 			},
 		}
 
-		err := env.AddEnvironment("prod")
+		err := env.AddBundle("prod")
 
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if _, ok := env.envs.Environments["prod"]; !ok {
-			t.Error("environment was not added")
+		if _, ok := env.envs.Bundles["prod"]; !ok {
+			t.Error("bundle was not added")
 		}
-		if env.envs.Environments["prod"].Packages == nil {
+		if env.envs.Bundles["prod"].Packages == nil {
 			t.Error("packages map should be initialized")
 		}
 	})
 
-	t.Run("environment already exists", func(t *testing.T) {
-		env := &Environment{
-			envs: &schema.EnvironmentDefinitions{
-				Environments: map[string]*schema.Environment{
+	t.Run("bundle already exists", func(t *testing.T) {
+		env := &Bundle{
+			envs: &schema.BundleDefinitions{
+				Bundles: map[string]*schema.Bundle{
 					"dev": {},
 				},
 			},
 		}
 
-		err := env.AddEnvironment("dev")
+		err := env.AddBundle("dev")
 
 		if err == nil {
 			t.Fatal("expected error, got nil")

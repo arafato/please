@@ -1,7 +1,7 @@
 /*
  * Core Initialization
  */
-package storage
+package environment
 
 import (
 	"bufio"
@@ -26,7 +26,7 @@ const (
 	pleaseDir        = ".please"
 )
 
-type Storage struct {
+type Environment struct {
 	homePath         string
 	PleasePath       string
 	manifestPath     string
@@ -36,9 +36,9 @@ type Storage struct {
 	VersionsPath     string
 }
 
-func New() *Storage {
+func New() *Environment {
 	homeDir, _ := os.UserHomeDir()
-	return &Storage{
+	return &Environment{
 		homePath:         homeDir,
 		PleasePath:       fmt.Sprintf("%s/%s", homeDir, pleaseDir),
 		manifestPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "manifests"),
@@ -49,9 +49,9 @@ func New() *Storage {
 	}
 }
 
-func (s *Storage) DeployScript(d artifacts.Deployable, pkg, version string) (string, error) {
-	installationFullPath := fmt.Sprintf("%s/%s/%s/%s.sh", s.VersionsPath, pkg, version, pkg)
-	installationPath := fmt.Sprintf("%s/%s/%s", s.VersionsPath, pkg, version)
+func (e *Environment) DeployScript(d artifacts.Deployable, pkg, version string) (string, error) {
+	installationFullPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, version, pkg)
+	installationPath := fmt.Sprintf("%s/%s/%s", e.VersionsPath, pkg, version)
 
 	err := os.MkdirAll(installationPath, 0755)
 	if err != nil {
@@ -63,9 +63,9 @@ func (s *Storage) DeployScript(d artifacts.Deployable, pkg, version string) (str
 	return installationFullPath, nil
 }
 
-func (s *Storage) CreateSymlink(pkg, targetVersion string) error {
-	targetPath := fmt.Sprintf("%s/%s/%s/%s.sh", s.VersionsPath, pkg, targetVersion, pkg)
-	symlinkPath := fmt.Sprintf("%s/%s", s.BinPath, pkg)
+func (e *Environment) CreateSymlink(pkg, targetVersion string) error {
+	targetPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, targetVersion, pkg)
+	symlinkPath := fmt.Sprintf("%s/%s", e.BinPath, pkg)
 
 	// Remove existing file/symlink if it exists
 	if _, err := os.Lstat(symlinkPath); err == nil {
@@ -81,8 +81,8 @@ func (s *Storage) CreateSymlink(pkg, targetVersion string) error {
 	return nil
 }
 
-func (s *Storage) GetManifestPaths() ([]string, error) {
-	manifests, err := os.ReadDir(s.manifestPath)
+func (e *Environment) GetManifestPaths() ([]string, error) {
+	manifests, err := os.ReadDir(e.manifestPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read manifest directory: %w", err)
 	}
@@ -94,14 +94,14 @@ func (s *Storage) GetManifestPaths() ([]string, error) {
 	var files []string
 	for _, item := range manifests {
 		if !item.IsDir() && strings.HasSuffix(item.Name(), ".tar.gz") {
-			files = append(files, filepath.Join(s.manifestPath, item.Name()))
+			files = append(files, filepath.Join(e.manifestPath, item.Name()))
 		}
 	}
 	return files, nil
 }
 
-func (s *Storage) LoadSources() ([]string, error) {
-	file, err := os.Open(s.SourcesPath())
+func (e *Environment) LoadSources() ([]string, error) {
+	file, err := os.Open(e.SourcesPath())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open sources file: %w", err)
 	}
@@ -121,13 +121,13 @@ func (s *Storage) LoadSources() ([]string, error) {
 	}
 
 	if len(sources) == 0 {
-		return nil, fmt.Errorf("no sources found in %s", s.SourcesPath())
+		return nil, fmt.Errorf("no sources found in %s", e.SourcesPath())
 	}
 
 	return sources, nil
 }
 
-func (s *Storage) DownloadManifestFiles(urls []string) {
+func (e *Environment) DownloadManifestFiles(urls []string) {
 
 	p := mpb.New(mpb.WithWidth(60))
 	var wg sync.WaitGroup
@@ -135,53 +135,53 @@ func (s *Storage) DownloadManifestFiles(urls []string) {
 		// TODO: Check ETag - if no new version skip download
 		wg.Add(1)
 		fileName := path.Base(url)
-		go downloadManifest(url, s.ManifestPath(fileName), p, &wg)
+		go downloadManifest(url, e.ManifestPath(fileName), p, &wg)
 	}
 	wg.Wait()
 	p.Wait()
 }
 
-func (s *Storage) SourcesPath() string {
-	return filepath.Join(s.PleasePath, sourcesFile)
+func (e *Environment) SourcesPath() string {
+	return filepath.Join(e.PleasePath, sourcesFile)
 }
 
-func (s *Storage) ManifestPath(manifestName string) string {
-	return filepath.Join(s.manifestPath, manifestName)
+func (e *Environment) ManifestPath(manifestName string) string {
+	return filepath.Join(e.manifestPath, manifestName)
 }
 
-func (s *Storage) IsInitialized() bool {
-	if stat, err := os.Stat(s.PleasePath); err == nil && stat.IsDir() {
+func (e *Environment) IsInitialized() bool {
+	if stat, err := os.Stat(e.PleasePath); err == nil && stat.IsDir() {
 		return true
 	}
 	return false
 }
 
-func (s *Storage) Initialize() error {
-	if err := os.MkdirAll(s.PleasePath, 0755); err != nil {
+func (e *Environment) Initialize() error {
+	if err := os.MkdirAll(e.PleasePath, 0755); err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(s.manifestPath, 0755); err != nil {
+	if err := os.MkdirAll(e.manifestPath, 0755); err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(s.BinPath, 0755); err != nil {
+	if err := os.MkdirAll(e.BinPath, 0755); err != nil {
 		return err
 	}
 
-	if err := os.MkdirAll(s.VersionsPath, 0755); err != nil {
+	if err := os.MkdirAll(e.VersionsPath, 0755); err != nil {
 		return err
 	}
 
-	if err := s.createSources(); err != nil {
+	if err := e.createSources(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *Storage) createSources() error {
-	path := s.SourcesPath()
+func (e *Environment) createSources() error {
+	path := e.SourcesPath()
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		content := fmt.Sprintf("# please package sources\n# Add one URL per line\n\n%s\n", defaultSourceURL)

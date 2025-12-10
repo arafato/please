@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/arafat/please/storage"
+	"github.com/arafat/please/environment"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var UpdateCmd = &cobra.Command{
 	Short: "Updates the local cache",
 	Long:  `Updates the local cache by pulling the latest manifests defined in .please/sources`,
 	Run: func(cmd *cobra.Command, args []string) {
-		s := storage.New()
+		s := environment.New()
 		manifestURLs, err := s.LoadSources()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error loading sources: %v\n", err)
