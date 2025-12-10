@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -34,6 +35,7 @@ type Environment struct {
 	EnvironmentPath  string
 	BinPath          string
 	VersionsPath     string
+	Platform         string
 }
 
 func New() *Environment {
@@ -46,6 +48,7 @@ func New() *Environment {
 		EnvironmentPath:  fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "env.json"),
 		BinPath:          fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "bin"),
 		VersionsPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "versions"),
+		Platform:         "linux/" + runtime.GOARCH,
 	}
 }
 

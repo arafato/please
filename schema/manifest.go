@@ -16,7 +16,7 @@ type PackageManifest struct {
 
 	DefaultVersion  string        `json:"default_version"`
 	Script          string        `json:"script"`
-	Platform        string        `json:"platform"`
+	Platforms       []string      `json:"platforms"`
 	ApplicationArgs []string      `json:"application_args"`
 	ContainerArgs   ContainerArgs `json:"container_args"`
 }

@@ -13,12 +13,14 @@ type StandardScript struct {
 	Image           string
 	Version         string
 	Application     string
+	Platform        string
 }
 
 const standardScriptTemplate = `#!/usr/bin/env bash
 container run{{range .DNS}} --dns {{.}}{{end}}{{range .AdditionalFlags}} {{.}}{{end}} --rm{{range .Volumes}} \
   --volume {{.}}{{end}}{{if .WorkDir}} \
   --workdir {{.WorkDir}}{{end}} \
+  --platform {{.Platform}} \
   {{.Image}}:{{.Version}}{{if .ApplicationArgs}}{{range .ApplicationArgs}} \
   {{.}}{{end}}{{end}} "$@" 2>/dev/null
 `

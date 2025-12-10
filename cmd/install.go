@@ -72,7 +72,9 @@ var InstallCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		err = client.Install(context.TODO(), image, version, pm.Platform)
+
+		platform := selectContainerPlatform(e.Platform, pm.Platforms)
+		err = client.Install(context.TODO(), image, version, platform)
 		if err != nil {
 			if err.Error() == "exit status 2" {
 				// NOOP - all good and expected error
@@ -92,6 +94,7 @@ var InstallCmd = &cobra.Command{
 				Image:           image,
 				Version:         version,
 				Application:     pkg,
+				Platform:        platform,
 			}
 
 			e.DeployScript(stdScript, pkg, version)
@@ -103,6 +106,20 @@ var InstallCmd = &cobra.Command{
 
 		fmt.Printf("✅ Successfully installed %s:%s in bundle [%s]\n", pkg, version, activeBundle)
 	},
+}
+
+func selectContainerPlatform(local string, available []string) string {
+	fallback := ""
+	for _, p := range available {
+		if p == local {
+			return local
+		}
+		if fallback == "" && p != local {
+			return p
+		}
+	}
+
+	return fallback
 }
 
 func parseIdentifier(s string) (namespace, pkg, version string) {
