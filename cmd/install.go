@@ -13,12 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version string
-
-func init() {
-	InstallCmd.Flags().StringVar(&version, "version", "", "Version of the package to install")
-}
-
 var InstallCmd = &cobra.Command{
 	Use:   "install [namespace:package:version]",
 	Short: "installs a containerized app, default namespace is 'core'.",
@@ -115,7 +109,7 @@ func selectContainerPlatform(local string, available []string) string {
 			return local
 		}
 		if fallback == "" && p != local {
-			return p
+			fallback = p
 		}
 	}
 
