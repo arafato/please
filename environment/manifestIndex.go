@@ -69,7 +69,7 @@ func (m *ManifestArchive) ExactMatch(name string) (*schema.PackageManifest, erro
 		}
 	}
 
-	return nil, fmt.Errorf("object with name '%s' not found", name)
+	return nil, fmt.Errorf("package with name '%s' not found", name)
 }
 
 type candidate struct {
