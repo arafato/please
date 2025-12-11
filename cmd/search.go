@@ -106,7 +106,7 @@ var SearchCmd = &cobra.Command{
 		for _, namespace := range namespaces {
 			fmt.Printf("Namespace: %s\n", namespace)
 			for _, manifest := range results[namespace] {
-				fmt.Printf("  - %v [%v]\n", manifest.Name, manifest.DefaultVersion)
+				fmt.Printf("  - %v \n", manifest.Name)
 			}
 		}
 	},
