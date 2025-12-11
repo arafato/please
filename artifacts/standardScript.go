@@ -14,15 +14,16 @@ type StandardScript struct {
 	Version         string
 	Application     string
 	Platform        string
+	Executable      string
 }
 
 const standardScriptTemplate = `#!/usr/bin/env bash
-container run{{range .DNS}} --dns {{.}}{{end}}{{range .AdditionalFlags}} {{.}}{{end}} --rm{{range .Volumes}} \
+exec container run{{range .DNS}} --dns {{.}}{{end}}{{range .AdditionalFlags}} {{.}}{{end}} -i --rm{{range .Volumes}} \
   --volume {{.}}{{end}}{{if .WorkDir}} \
   --workdir {{.WorkDir}}{{end}} \
   --platform {{.Platform}} \
-  {{.Image}}:{{.Version}}{{if .ApplicationArgs}}{{range .ApplicationArgs}} \
-  {{.}}{{end}}{{end}} "$@" 2>/dev/null
+  {{.Image}}:{{.Version}} \
+  {{if .Executable}} {{.Executable}}{{end}}{{if .ApplicationArgs}}{{range .ApplicationArgs}} {{.}}{{end}}{{end}} "$@"
 `
 
 func (s *StandardScript) WriteScript(path string) error {

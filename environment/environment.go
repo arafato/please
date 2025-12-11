@@ -52,8 +52,8 @@ func New() *Environment {
 	}
 }
 
-func (e *Environment) DeployScript(d artifacts.Deployable, pkg, version string) (string, error) {
-	installationFullPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, version, pkg)
+func (e *Environment) DeployScript(d artifacts.Deployable, pkg, executable, version string) (string, error) {
+	installationFullPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, version, executable)
 	installationPath := fmt.Sprintf("%s/%s/%s", e.VersionsPath, pkg, version)
 
 	err := os.MkdirAll(installationPath, 0755)
@@ -66,9 +66,9 @@ func (e *Environment) DeployScript(d artifacts.Deployable, pkg, version string) 
 	return installationFullPath, nil
 }
 
-func (e *Environment) CreateSymlink(pkg, targetVersion string) error {
-	targetPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, targetVersion, pkg)
-	symlinkPath := fmt.Sprintf("%s/%s", e.BinPath, pkg)
+func (e *Environment) CreateSymlink(pkg, executable, targetVersion string) error {
+	targetPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, targetVersion, executable)
+	symlinkPath := fmt.Sprintf("%s/%s", e.BinPath, executable)
 
 	// Remove existing file/symlink if it exists
 	if _, err := os.Lstat(symlinkPath); err == nil {

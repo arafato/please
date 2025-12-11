@@ -3,6 +3,7 @@ package schema
 // --- Main Manifest Structure ---
 type PackageManifest struct {
 	Name        string   `json:"name"`
+	Executable  string   `json:"executable"`
 	Description string   `json:"description"`
 	Homepage    string   `json:"homepage"`
 	License     string   `json:"license"`

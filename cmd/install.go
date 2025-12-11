@@ -99,10 +99,16 @@ var InstallCmd = &cobra.Command{
 				Version:         version,
 				Application:     pkg,
 				Platform:        platform,
+				Executable:      pm.Executable,
 			}
-
-			e.DeployScript(stdScript, pkg, version)
-			e.CreateSymlink(pkg, version)
+			var scriptName string
+			if pm.Executable == "" {
+				scriptName = pm.Name
+			} else {
+				scriptName = pm.Executable
+			}
+			e.DeployScript(stdScript, pkg, scriptName, version)
+			e.CreateSymlink(pkg, scriptName, version)
 		} else {
 			fmt.Printf("Script type [%s] is not supported.", pm.Script)
 			return
