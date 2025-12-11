@@ -44,19 +44,29 @@ var InstallCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		if version == "" {
-			version, err = utils.SelectFromOptions(pm.Versions, "Select a version")
-			// version = pm.DefaultVersion
-		}
-		image := pm.Image
 
-		env, err := environment.LoadBundleDefinitions(e)
+		if version == "" {
+			var versions []string
+			if pm.VersionDiscovery != nil {
+				regClient := container.NewRegistryClient()
+				versions, err = regClient.ListVersions(context.Background(), pm)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error fetching versions: %v\n", err)
+					return
+				}
+			} else {
+				versions = pm.Versions
+			}
+			version, _ = utils.SelectFromOptions(versions, "Select a version")
+		}
+
+		bundle, err := environment.LoadBundleDefinitions(e)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error loading environment: %v\n", err)
 			return
 		}
-		activeBundle := env.GetActiveBundle()
-		if env.IsPackageInstalled(activeBundle, pkg, version) {
+		activeBundle := bundle.GetActiveBundle()
+		if bundle.IsPackageInstalled(activeBundle, pkg, version) {
 			fmt.Printf("Package %s:%s is already installed in active environment [%s] \n", pkg, version, activeBundle)
 			return
 		}
@@ -68,7 +78,7 @@ var InstallCmd = &cobra.Command{
 		}
 
 		platform := selectContainerPlatform(e.Platform, pm.Platforms)
-		err = client.Install(context.TODO(), image, version, platform)
+		err = client.Install(context.TODO(), pm.Image, version, platform)
 		if err != nil {
 			if err.Error() == "exit status 2" {
 				// NOOP - all good and expected error
@@ -78,14 +88,14 @@ var InstallCmd = &cobra.Command{
 			}
 		}
 
-		env.AddPackage(activeBundle, pkg, version)
-		env.SaveBundle(e)
+		bundle.AddPackage(activeBundle, pkg, version)
+		bundle.SaveBundle(e)
 
 		if pm.Script == "standard" {
 			stdScript := &artifacts.StandardScript{
 				ContainerArgs:   pm.ContainerArgs,
 				ApplicationArgs: pm.ApplicationArgs,
-				Image:           image,
+				Image:           pm.Image,
 				Version:         version,
 				Application:     pkg,
 				Platform:        platform,
