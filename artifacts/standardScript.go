@@ -3,12 +3,15 @@ package artifacts
 import (
 	"html/template"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/arafat/please/schema"
 )
 
 type StandardScript struct {
 	schema.ContainerArgs
+	HostEnvs        map[string]string
 	ApplicationArgs []string
 	Image           string
 	Version         string
@@ -17,16 +20,33 @@ type StandardScript struct {
 	Executable      string
 }
 
+var replacements = map[string]string{
+	"${RUNTIME_OS}":   runtime.GOOS,
+	"${RUNTIME_ARCH}": runtime.GOARCH,
+}
+
 const standardScriptTemplate = `#!/usr/bin/env bash
-exec container run{{range .DNS}} --dns {{.}}{{end}}{{range .AdditionalFlags}} {{.}}{{end}} -i --rm{{range .Volumes}} \
-  --volume {{.}}{{end}}{{if .WorkDir}} \
-  --workdir {{.WorkDir}}{{end}} \
+{{- range $key, $value := .HostEnvs }}
+export {{ $key }}={{ $value }}
+{{- end }}
+exec container run -i --rm \
+  {{range .DNS}} --dns {{.}} {{end}}\
+  {{- if .AdditionalFlags}} {{range .AdditionalFlags}} {{.}} {{end}} \
+  {{end }}
+  {{range .Volumes}} --volume {{.}} {{end}} \
+  {{if .WorkDir}} --workdir {{.WorkDir}} {{end}} \
   --platform {{.Platform}} \
+  {{- if .ContainerEnvVars}} {{range .ContainerEnvVars}} -e {{ . }} {{end}} \
+  {{end -}}
   {{.Image}}:{{.Version}} \
-  {{if .Executable}} {{.Executable}}{{end}}{{if .ApplicationArgs}}{{range .ApplicationArgs}} {{.}}{{end}}{{end}} "$@"
+  {{if .Executable}} {{.Executable}} \
+  {{end -}}
+  {{if .ApplicationArgs}} {{range .ApplicationArgs}} {{.}} {{end}}{{end}}"$@"
 `
 
-func (s *StandardScript) WriteScript(path string) error {
+func (s *StandardScript) Deploy(path string) error {
+	processContainerArgs(s.ContainerArgs.ContainerEnvVars)
+
 	tmpl, err := template.New("script").Parse(standardScriptTemplate)
 	if err != nil {
 		return err
@@ -39,4 +59,13 @@ func (s *StandardScript) WriteScript(path string) error {
 	defer f.Close()
 
 	return tmpl.Execute(f, s)
+}
+
+// Replaces ${RUNTIME_OS} and ${RUNTIME_ARCH} dynamically with according runtime data
+func processContainerArgs(cArgs map[string]string) {
+	for key, value := range cArgs {
+		for replKey, replValue := range replacements {
+			cArgs[key] = strings.ReplaceAll(value, replKey, replValue)
+		}
+	}
 }

@@ -6,8 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-
-	"github.com/arafat/please/schema"
 )
 
 var containerBinaryName = func() string {
@@ -51,28 +49,4 @@ func (c *Client) Install(ctx context.Context, image string, version string, plat
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
-}
-
-func ContainerArgsToSlice(args schema.ContainerArgs) []string {
-	var cliArgs []string
-
-	// Add DNS servers
-	for _, dns := range args.DNS {
-		cliArgs = append(cliArgs, "--dns", dns)
-	}
-
-	// Add working directory
-	if args.WorkDir != "" {
-		cliArgs = append(cliArgs, "--workdir", args.WorkDir)
-	}
-
-	// Add volumes
-	for _, vol := range args.Volumes {
-		cliArgs = append(cliArgs, "--volume", fmt.Sprintf("%q", vol))
-	}
-
-	// Add additional flags
-	cliArgs = append(cliArgs, args.AdditionalFlags...)
-
-	return cliArgs
 }

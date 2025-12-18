@@ -36,10 +36,15 @@ type Environment struct {
 	BinPath          string
 	VersionsPath     string
 	Platform         string
+	Arch             string
+	OS               string
 }
 
 func New() *Environment {
 	homeDir, _ := os.UserHomeDir()
+	arch := strings.ToLower(runtime.GOARCH)
+	os := strings.ToLower(runtime.GOOS)
+
 	return &Environment{
 		homePath:         homeDir,
 		PleasePath:       fmt.Sprintf("%s/%s", homeDir, pleaseDir),
@@ -48,11 +53,13 @@ func New() *Environment {
 		EnvironmentPath:  fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "env.json"),
 		BinPath:          fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "bin"),
 		VersionsPath:     fmt.Sprintf("%s/%s/%s", homeDir, pleaseDir, "versions"),
-		Platform:         "linux/" + runtime.GOARCH,
+		Platform:         fmt.Sprintf("%s/%s", os, arch),
+		Arch:             arch,
+		OS:               os,
 	}
 }
 
-func (e *Environment) DeployScript(d artifacts.Deployable, pkg, executable, version string) (string, error) {
+func (e *Environment) DeployArtifact(d artifacts.Deployable, pkg, executable, version string) (string, error) {
 	installationFullPath := fmt.Sprintf("%s/%s/%s/%s.sh", e.VersionsPath, pkg, version, executable)
 	installationPath := fmt.Sprintf("%s/%s/%s", e.VersionsPath, pkg, version)
 
@@ -60,7 +67,7 @@ func (e *Environment) DeployScript(d artifacts.Deployable, pkg, executable, vers
 	if err != nil {
 		return "", fmt.Errorf("Error creating directories:%w", err)
 	}
-	if err := d.WriteScript(installationFullPath); err != nil {
+	if err := d.Deploy(installationFullPath); err != nil {
 		return "", fmt.Errorf("failed to deploy script: %w", err)
 	}
 	return installationFullPath, nil

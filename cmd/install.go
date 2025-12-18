@@ -77,7 +77,19 @@ var InstallCmd = &cobra.Command{
 			return
 		}
 
-		platform := selectContainerPlatform(e.Platform, pm.Platforms)
+		hooks, err := ma.LoadScriptHooksFromManifest(pkg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading script hooks: %v\n", err)
+			return
+		}
+
+		preHook := artifacts.NewShellHook(hooks.PreHook, pm.HostEnvVars)
+		if err := preHook.Execute(context.TODO()); err != nil {
+			fmt.Fprintf(os.Stderr, "Error executing pre-hook: %v\n", err)
+			return
+		}
+
+		platform := selectContainerPlatform(e.Arch, pm.Platforms)
 		err = client.Install(context.TODO(), pm.Image, version, platform)
 		if err != nil {
 			if err.Error() == "exit status 2" {
@@ -99,16 +111,18 @@ var InstallCmd = &cobra.Command{
 				Version:         version,
 				Application:     pkg,
 				Platform:        platform,
-				Executable:      pm.Executable,
+				Executable:      pm.Exec,
+				HostEnvs:        pm.HostEnvVars,
 			}
-			var scriptName string
-			if pm.Executable == "" {
-				scriptName = pm.Name
+
+			var executable string
+			if pm.Exec != "" {
+				executable = pm.Exec
 			} else {
-				scriptName = pm.Executable
+				executable = pm.Name
 			}
-			e.DeployScript(stdScript, pkg, scriptName, version)
-			e.CreateSymlink(pkg, scriptName, version)
+			e.DeployArtifact(stdScript, pkg, executable, version)
+			e.CreateSymlink(pkg, executable, version)
 		} else {
 			fmt.Printf("Script type [%s] is not supported.", pm.Script)
 			return
@@ -121,12 +135,10 @@ var InstallCmd = &cobra.Command{
 func selectContainerPlatform(local string, available []string) string {
 	fallback := ""
 	for _, p := range available {
-		if p == local {
-			return local
+		if strings.Contains(p, local) {
+			return p
 		}
-		if fallback == "" && p != local {
-			fallback = p
-		}
+		fallback = p
 	}
 
 	return fallback

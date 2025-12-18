@@ -3,7 +3,7 @@ package schema
 // --- Main Manifest Structure ---
 type PackageManifest struct {
 	Name        string   `json:"name"`
-	Executable  string   `json:"executable"`
+	Exec        string   `json:"exec"`
 	Description string   `json:"description"`
 	Homepage    string   `json:"homepage"`
 	License     string   `json:"license"`
@@ -15,19 +15,21 @@ type PackageManifest struct {
 	Versions         []string          `json:"versions,omitempty"`
 	VersionDiscovery *VersionDiscovery `json:"version_discovery,omitempty"`
 
-	DefaultVersion  string        `json:"default_version"`
-	Script          string        `json:"script"`
-	Platforms       []string      `json:"platforms"`
-	ApplicationArgs []string      `json:"application_args"`
-	ContainerArgs   ContainerArgs `json:"container_args"`
+	DefaultVersion  string            `json:"default_version"`
+	Script          string            `json:"script"`
+	Platforms       []string          `json:"platforms"`
+	ApplicationArgs []string          `json:"application_args"`
+	HostEnvVars     map[string]string `json:"host_env_vars"`
+	ContainerArgs   ContainerArgs     `json:"container_args"`
 }
 
 // ContainerArgs maps directly to the container_args JSON object.
 type ContainerArgs struct {
-	DNS             []string `json:"dns"`
-	WorkDir         string   `json:"workdir"`
-	Volumes         []string `json:"volumes"`
-	AdditionalFlags []string `json:"additional_flags"`
+	DNS              []string          `json:"dns"`
+	WorkDir          string            `json:"workdir"`
+	Volumes          []string          `json:"volumes"`
+	AdditionalFlags  []string          `json:"additional_flags"`
+	ContainerEnvVars map[string]string `json:"container_env_vars"`
 }
 
 // VersionFilter defines the pattern and exclude rules for version discovery.

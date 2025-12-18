@@ -1,9 +1,14 @@
 package environment
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
+	"io"
 	"iter"
+	"os"
 	"sort"
+	"strings"
 
 	"github.com/agnivade/levenshtein"
 
@@ -120,4 +125,89 @@ func (m *ManifestArchive) FuzzySearch(query string, maxResults int) ([]schema.Pa
 	}
 
 	return manifests, nil
+}
+
+// ScriptHooks contains the pre and post hook scripts
+type ScriptHooks struct {
+	PreHook  string
+	PostHook string
+}
+
+// LoadScriptHooksFromManifest reads the package name from JSON and returns
+// both prehook and posthook scripts if they exist
+func (m *ManifestArchive) LoadScriptHooksFromManifest(packageName string) (*ScriptHooks, error) {
+	preHookName := fmt.Sprintf("%s_prehook.sh", packageName)
+	postHookName := fmt.Sprintf("%s_posthook.sh", packageName)
+
+	hooks, err := extractScriptsFromTarball(m.Path, preHookName, postHookName)
+	if err != nil {
+		return nil, err
+	}
+
+	return hooks, nil
+}
+
+// extractScriptsFromTarball extracts both prehook and posthook scripts from the tarball
+func extractScriptsFromTarball(manifestPath, preHookName, postHookName string) (*ScriptHooks, error) {
+	file, err := os.Open(manifestPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open tarball: %w", err)
+	}
+	defer file.Close()
+
+	gzr, err := gzip.NewReader(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gzip reader: %w", err)
+	}
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+
+	hooks := &ScriptHooks{}
+	foundCount := 0
+
+	for {
+		header, err := tr.Next()
+		if err == io.EOF {
+			// Finished reading tarball
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to read tar entry: %w", err)
+		}
+
+		// Only process regular files in the scripts directory
+		if header.Typeflag != tar.TypeReg {
+			continue
+		}
+
+		// Check if this is in the hooks directory
+		// Path will be like "hooks/<pkg>_prehook.sh"
+		if strings.HasPrefix(header.Name, "hooks/") {
+			fileName := strings.TrimPrefix(header.Name, "hooks/")
+
+			if fileName == preHookName {
+				contents, err := io.ReadAll(tr)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read prehook script: %w", err)
+				}
+				hooks.PreHook = string(contents)
+				foundCount++
+			} else if fileName == postHookName {
+				contents, err := io.ReadAll(tr)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read posthook script: %w", err)
+				}
+				hooks.PostHook = string(contents)
+				foundCount++
+			}
+
+			// If we found both scripts, we can stop early
+			if foundCount == 2 {
+				break
+			}
+		}
+	}
+
+	return hooks, nil
 }
