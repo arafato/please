@@ -21,7 +21,7 @@ type StandardScript struct {
 }
 
 var replacements = map[string]string{
-	"${RUNTIME_OS}":   runtime.GOOS,
+	"${RUNTIME_OS}":   "linux", // no darwin images available, plz focuses on linux images
 	"${RUNTIME_ARCH}": runtime.GOARCH,
 }
 
@@ -36,7 +36,8 @@ exec container run -i --rm \
   {{range .Volumes}} --volume {{.}} {{end}} \
   {{if .WorkDir}} --workdir {{.WorkDir}} {{end}} \
   --platform {{.Platform}} \
-  {{- if .ContainerEnvVars}} {{range .ContainerEnvVars}} -e {{ . }} {{end}} \
+  {{- range $key, $value := .ContainerEnvVars}}
+  {{- if $value}} -e {{ $key }}={{ $value }} {{end}} \
   {{end -}}
   {{.Image}}:{{.Version}} \
   {{if .Executable}} {{.Executable}} \
@@ -65,7 +66,9 @@ func (s *StandardScript) Deploy(path string) error {
 func processContainerArgs(cArgs map[string]string) {
 	for key, value := range cArgs {
 		for replKey, replValue := range replacements {
-			cArgs[key] = strings.ReplaceAll(value, replKey, replValue)
+			if replKey == value {
+				cArgs[key] = strings.ReplaceAll(value, replKey, replValue)
+			}
 		}
 	}
 }

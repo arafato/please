@@ -43,7 +43,7 @@ type Environment struct {
 func New() *Environment {
 	homeDir, _ := os.UserHomeDir()
 	arch := strings.ToLower(runtime.GOARCH)
-	os := strings.ToLower(runtime.GOOS)
+	os := "linux" // no darwin images available strings.ToLower(runtime.GOOS)
 
 	return &Environment{
 		homePath:         homeDir,

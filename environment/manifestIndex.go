@@ -136,8 +136,8 @@ type ScriptHooks struct {
 // LoadScriptHooksFromManifest reads the package name from JSON and returns
 // both prehook and posthook scripts if they exist
 func (m *ManifestArchive) LoadScriptHooksFromManifest(packageName string) (*ScriptHooks, error) {
-	preHookName := fmt.Sprintf("%s_prehook.sh", packageName)
-	postHookName := fmt.Sprintf("%s_posthook.sh", packageName)
+	preHookName := fmt.Sprintf("%s_install.sh", packageName)
+	postHookName := fmt.Sprintf("%s_cleanup.sh", packageName)
 
 	hooks, err := extractScriptsFromTarball(m.Path, preHookName, postHookName)
 	if err != nil {
