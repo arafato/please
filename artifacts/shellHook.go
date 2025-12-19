@@ -25,7 +25,7 @@ func (s *ShellHook) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	fmt.Println("⚙ Executing install hook...")
+	fmt.Println("⚙ Executing hook...")
 	cmd := exec.Command("bash", "-c", s.script)
 	vars := make([]string, 0, len(s.hostEnvVars))
 	for k, v := range s.hostEnvVars {
@@ -38,7 +38,7 @@ func (s *ShellHook) Execute(ctx context.Context) error {
 
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to execute install hook: %w", err)
+		return fmt.Errorf("failed to execute hook: %w", err)
 	}
 	return nil
 }
