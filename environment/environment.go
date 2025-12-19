@@ -91,6 +91,22 @@ func (e *Environment) CreateSymlink(pkg, executable, targetVersion string) error
 	return nil
 }
 
+func (e *Environment) DeleteArtifact(pkg, version string) error {
+	installationPath := fmt.Sprintf("%s/%s/%s", e.VersionsPath, pkg, version)
+	if err := os.RemoveAll(installationPath); err != nil {
+		return fmt.Errorf("Error removing artifact:%w", err)
+	}
+	return nil
+}
+
+func (e *Environment) DeleteSymlink(executable string) error {
+	symlinkPath := fmt.Sprintf("%s/%s", e.BinPath, executable)
+	if err := os.Remove(symlinkPath); err != nil {
+		return fmt.Errorf("Error removing existing symlink:%w", err)
+	}
+	return nil
+}
+
 func (e *Environment) GetManifestPaths() ([]string, error) {
 	manifests, err := os.ReadDir(e.manifestPath)
 	if err != nil {

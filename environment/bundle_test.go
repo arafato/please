@@ -38,8 +38,8 @@ func TestLoadEnvironmentDefinitions(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.ActiveBundle != "dev" {
-			t.Errorf("expected ActiveEnvironment=dev, got %s", env.envs.ActiveBundle)
+		if env.bDefs.ActiveBundle != "dev" {
+			t.Errorf("expected ActiveEnvironment=dev, got %s", env.bDefs.ActiveBundle)
 		}
 	})
 
@@ -84,7 +84,7 @@ func TestSaveBundle(t *testing.T) {
 		envPath := filepath.Join(tmpDir, "environments.json")
 
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				ActiveBundle: "prod",
 				Bundles: map[string]*schema.Bundle{
 					"prod": {Packages: map[string]string{"pkg1": "v2.0.0"}},
@@ -117,7 +117,7 @@ func TestSaveBundle(t *testing.T) {
 
 	t.Run("invalid path", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{},
+			bDefs: &schema.BundleDefinitions{},
 		}
 		s := &Environment{EnvironmentPath: "/invalid/path/file.json"}
 
@@ -132,7 +132,7 @@ func TestSaveBundle(t *testing.T) {
 func TestAddPackage(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				Bundles: map[string]*schema.Bundle{
 					"dev": {Packages: map[string]string{}},
 				},
@@ -144,14 +144,14 @@ func TestAddPackage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.Bundles["dev"].Packages["newpkg"] != "v1.0.0" {
+		if env.bDefs.Bundles["dev"].Packages["newpkg"] != "v1.0.0" {
 			t.Error("package was not added correctly")
 		}
 	})
 
 	t.Run("bundle not found", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				Bundles: map[string]*schema.Bundle{},
 			},
 		}
@@ -165,7 +165,7 @@ func TestAddPackage(t *testing.T) {
 
 	t.Run("nil packages map", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				Bundles: map[string]*schema.Bundle{
 					"dev": {Packages: nil},
 				},
@@ -177,7 +177,7 @@ func TestAddPackage(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.Bundles["dev"].Packages["pkg"] != "v1.0.0" {
+		if env.bDefs.Bundles["dev"].Packages["pkg"] != "v1.0.0" {
 			t.Error("package was not added correctly")
 		}
 	})
@@ -186,7 +186,7 @@ func TestAddPackage(t *testing.T) {
 func TestSetActiveBundle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				ActiveBundle: "dev",
 				Bundles: map[string]*schema.Bundle{
 					"dev":  {},
@@ -200,14 +200,14 @@ func TestSetActiveBundle(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if env.envs.ActiveBundle != "prod" {
-			t.Errorf("expected ActiveBundle=prod, got %s", env.envs.ActiveBundle)
+		if env.bDefs.ActiveBundle != "prod" {
+			t.Errorf("expected ActiveBundle=prod, got %s", env.bDefs.ActiveBundle)
 		}
 	})
 
 	t.Run("bundle not found", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				Bundles: map[string]*schema.Bundle{
 					"dev": {},
 				},
@@ -224,7 +224,7 @@ func TestSetActiveBundle(t *testing.T) {
 
 func TestGetActiveBundle(t *testing.T) {
 	env := &Bundle{
-		envs: &schema.BundleDefinitions{
+		bDefs: &schema.BundleDefinitions{
 			ActiveBundle: "staging",
 		},
 	}
@@ -238,7 +238,7 @@ func TestGetActiveBundle(t *testing.T) {
 
 func TestListBundle(t *testing.T) {
 	env := &Bundle{
-		envs: &schema.BundleDefinitions{
+		bDefs: &schema.BundleDefinitions{
 			Bundles: map[string]*schema.Bundle{
 				"dev":     {},
 				"staging": {},
@@ -270,7 +270,7 @@ func TestListBundle(t *testing.T) {
 func TestAddBundle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				Bundles: map[string]*schema.Bundle{
 					"dev": {},
 				},
@@ -282,17 +282,17 @@ func TestAddBundle(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		if _, ok := env.envs.Bundles["prod"]; !ok {
+		if _, ok := env.bDefs.Bundles["prod"]; !ok {
 			t.Error("bundle was not added")
 		}
-		if env.envs.Bundles["prod"].Packages == nil {
+		if env.bDefs.Bundles["prod"].Packages == nil {
 			t.Error("packages map should be initialized")
 		}
 	})
 
 	t.Run("bundle already exists", func(t *testing.T) {
 		env := &Bundle{
-			envs: &schema.BundleDefinitions{
+			bDefs: &schema.BundleDefinitions{
 				Bundles: map[string]*schema.Bundle{
 					"dev": {},
 				},

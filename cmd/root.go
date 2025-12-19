@@ -48,6 +48,7 @@ var RootCmd = &cobra.Command{
 }
 
 func init() {
+	RootCmd.AddCommand(DeleteCmd)
 	RootCmd.AddCommand(UpdateCmd)
 	RootCmd.AddCommand(SearchCmd)
 	RootCmd.AddCommand(InstallCmd)
