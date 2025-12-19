@@ -30,19 +30,36 @@ const standardScriptTemplate = `#!/usr/bin/env bash
 export {{ $key }}={{ $value }}
 {{- end }}
 exec container run -i --rm \
-  {{range .DNS}} --dns {{.}} {{end}}\
-  {{- if .AdditionalFlags}} {{range .AdditionalFlags}} {{.}} {{end}} \
-  {{end }}
-  {{range .Volumes}} --volume {{.}} {{end}} \
-  {{if .WorkDir}} --workdir {{.WorkDir}} {{end}} \
+{{- range .DNS }}
+  --dns {{.}} \
+{{- end }}
+{{- if .AdditionalFlags }}
+{{- range .AdditionalFlags }}
+  {{.}} \
+{{- end }}
+{{- end }}
+{{- range .Volumes }}
+  --volume {{.}} \
+{{- end }}
+{{- if .WorkDir }}
+  --workdir {{.WorkDir}} \
+{{- end }}
   --platform {{.Platform}} \
-  {{- range $key, $value := .ContainerEnvVars}}
-  {{- if $value}} -e {{ $key }}={{ $value }} {{end}} \
-  {{end -}}
+{{- range $key, $value := .ContainerEnvVars }}
+{{- if $value }}
+  -e {{ $key }}={{ $value }} \
+{{- end }}
+{{- end }}
   {{.Image}}:{{.Version}} \
-  {{if .Executable}} {{.Executable}} \
-  {{end -}}
-  {{if .ApplicationArgs}} {{range .ApplicationArgs}} {{.}} {{end}}{{end}}"$@"
+{{- if .Executable }}
+  {{.Executable}} \
+{{- end }}
+{{- if .ApplicationArgs }}
+{{- range .ApplicationArgs }}
+  {{.}} \
+{{- end }}
+{{- end }}
+  "$@"
 `
 
 func (s *StandardScript) Deploy(path string) error {
