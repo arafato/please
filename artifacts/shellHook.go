@@ -21,8 +21,6 @@ func NewShellHook(script string, hostEnvVars map[string]string) *ShellHook {
 
 func (s *ShellHook) Execute(ctx context.Context) error {
 	if s.script == "" {
-		fmt.Println("No script...")
-
 		// NOOP
 		return nil
 	}
