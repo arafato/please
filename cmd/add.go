@@ -8,12 +8,10 @@ import (
 )
 
 var (
-	addSFlag bool
 	descFlag string
 )
 
 func init() {
-	AddCmd.Flags().BoolVarP(&addSFlag, "s", "s", false, "Switch to new bundle")
 	AddCmd.Flags().StringVarP(&descFlag, "desc", "d", "", "Description of the bundle")
 }
 
@@ -46,16 +44,11 @@ var AddCmd = &cobra.Command{
 			return
 		}
 
-		if addSFlag {
-			bundle.SetActiveBundle(bundleName)
+		if err := bundle.SaveBundle(env); err != nil {
+			fmt.Printf("Error saving bundle: %v\n", err)
+			return
 		}
-
-		bundle.SaveBundle(env)
 
 		fmt.Printf("✅ Successfully created bundle [%s]\n", bundleName)
-		if addSFlag {
-			fmt.Printf("✅ Active bundle set to [%s]\n", bundleName)
-		}
-
 	},
 }

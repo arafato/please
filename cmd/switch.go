@@ -25,40 +25,64 @@ var SwitchCmd = &cobra.Command{
 			return
 		}
 
-		bundle, err := environment.LoadBundleDefinitions(env)
+		if err := cleanupCurrentBundle(env); err != nil {
+			fmt.Printf("Error cleaning up current bundle: %v\n", err)
+		}
+
+		bundle, err := activateBundle(bundleName, env)
 		if err != nil {
-			fmt.Println("Error loading bundle definitions:", err)
+			fmt.Printf("Error switching to bundle %q: %v\n", bundleName, err)
 			return
 		}
 
-		ma := environment.NewManifestArchive(env.ManifestCoreFile)
-
-		toBeRemovedPkgs := bundle.GetInstalledPackages()
-		for pkg, _ := range toBeRemovedPkgs {
-			pm, err := ma.ExactMatch(pkg)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			env.DeleteSymlink(pm.Exec)
+		if err := bundle.SaveBundle(env); err != nil {
+			fmt.Printf("Error saving bundle: %w", err)
+			return
 		}
 
-		bundle.SetActiveBundle(bundleName)
-		packages := bundle.GetInstalledPackages()
-
-		for pkg, version := range packages {
-			pm, err := ma.ExactMatch(pkg)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			if err := env.CreateSymlink(pkg, pm.Exec, version); err != nil {
-				fmt.Println("Error creating symlink: ", err)
-				return
-			}
-		}
-		bundle.SaveBundle(env)
 		fmt.Printf("✅ Switched to bundle %q\n", bundleName)
 	},
+}
+
+func cleanupCurrentBundle(env *environment.Environment) error {
+	bundle, err := environment.LoadBundleDefinitions(env)
+	if err != nil {
+		return fmt.Errorf("Error loading bundle definitions: %w", err)
+	}
+
+	ma := environment.NewManifestArchive(env.ManifestCoreFile)
+
+	toBeRemovedPkgs := bundle.GetInstalledPackages()
+	for pkg, _ := range toBeRemovedPkgs {
+		pm, err := ma.ExactMatch(pkg)
+		if err != nil {
+			return fmt.Errorf("Error finding package %q: %w", pkg, err)
+		}
+		env.DeleteSymlink(pm.Exec)
+	}
+
+	return nil
+}
+
+func activateBundle(bundleName string, env *environment.Environment) (*environment.Bundle, error) {
+	bundle, err := environment.LoadBundleDefinitions(env)
+	if err != nil {
+		return nil, fmt.Errorf("Error loading bundle definitions: %w", err)
+	}
+
+	ma := environment.NewManifestArchive(env.ManifestCoreFile)
+	bundle.SetActiveBundle(bundleName)
+	packages := bundle.GetInstalledPackages()
+	for pkg, version := range packages {
+		pm, err := ma.ExactMatch(pkg)
+		if err != nil {
+			return nil, fmt.Errorf("Error finding package %q: %w", pkg, err)
+		}
+
+		if err := env.CreateSymlink(pkg, pm.Exec, version); err != nil {
+			return nil, fmt.Errorf("Error creating symlink for %q: %w", pkg, err)
+		}
+	}
+
+	return bundle, nil
 }
