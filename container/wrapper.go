@@ -31,12 +31,6 @@ func NewClient() (*Client, error) {
 	return nil, fmt.Errorf("failed to discover binary '%s'", binary)
 }
 
-// TODO: image and (default) version is missing
-func (c *Client) Run(ctx context.Context, args ...string) ([]byte, error) {
-	cmd := exec.CommandContext(ctx, c.path, args...)
-	return cmd.CombinedOutput()
-}
-
 func (c *Client) Install(ctx context.Context, image string, version string, platform string) error {
 	var cmd *exec.Cmd
 
