@@ -3,8 +3,6 @@ package artifacts
 import (
 	"html/template"
 	"os"
-	"runtime"
-	"strings"
 
 	"github.com/arafat/please/schema"
 )
@@ -18,11 +16,6 @@ type StandardScript struct {
 	Application     string
 	Platform        string
 	Executable      string
-}
-
-var replacements = map[string]string{
-	"${RUNTIME_OS}":   "linux", // no darwin images available, plz focuses on linux images
-	"${RUNTIME_ARCH}": runtime.GOARCH,
 }
 
 const standardScriptTemplate = `#!/usr/bin/env bash
@@ -63,8 +56,6 @@ exec container run -i --rm \
 `
 
 func (s *StandardScript) Deploy(path string) error {
-	processContainerArgs(s.ContainerArgs.ContainerEnvVars)
-
 	tmpl, err := template.New("script").Parse(standardScriptTemplate)
 	if err != nil {
 		return err
@@ -77,15 +68,4 @@ func (s *StandardScript) Deploy(path string) error {
 	defer f.Close()
 
 	return tmpl.Execute(f, s)
-}
-
-// Replaces ${RUNTIME_OS} and ${RUNTIME_ARCH} dynamically with according runtime data
-func processContainerArgs(cArgs map[string]string) {
-	for key, value := range cArgs {
-		for replKey, replValue := range replacements {
-			if replKey == value {
-				cArgs[key] = strings.ReplaceAll(value, replKey, replValue)
-			}
-		}
-	}
 }

@@ -40,6 +40,7 @@ var InstallCmd = &cobra.Command{
 		// need to search in a different manifest archive
 		ma := environment.NewManifestArchive(e.ManifestCoreFile)
 		pm, err := ma.ExactMatch(pkg)
+
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -82,6 +83,10 @@ var InstallCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error loading script hooks: %v\n", err)
 			return
 		}
+
+		replacer := utils.MakeRuntimeReplacer(version)
+		replacer(pm.ContainerArgs.ContainerEnvVars)
+		replacer(pm.HostEnvVars)
 
 		preHook := artifacts.NewShellHook(hooks.PreHook, pm.HostEnvVars)
 		if err := preHook.Execute(context.TODO()); err != nil {

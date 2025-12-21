@@ -7,6 +7,7 @@ import (
 
 	"github.com/arafat/please/artifacts"
 	"github.com/arafat/please/environment"
+	"github.com/arafat/please/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -43,6 +44,10 @@ var DeleteCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error getting package version:%v", err)
 			return
 		}
+
+		replacer := utils.MakeRuntimeReplacer(version)
+		replacer(pm.ContainerArgs.ContainerEnvVars)
+		replacer(pm.HostEnvVars)
 
 		e.DeleteSymlink(pm.Exec)
 		e.DeleteArtifact(pkg, version)
