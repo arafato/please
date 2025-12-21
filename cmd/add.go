@@ -31,7 +31,7 @@ var AddCmd = &cobra.Command{
 
 		env := environment.New()
 		if !env.IsInitialized() {
-			fmt.Println("Please initialize the environment first with the init command.")
+			fmt.Println("Please initialize the tool first with the init command.")
 			return
 		}
 
