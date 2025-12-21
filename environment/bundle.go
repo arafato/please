@@ -140,3 +140,9 @@ func (b *Bundle) GetPackageVersion(pkg string) (string, error) {
 
 	return version, nil
 }
+
+func (b *Bundle) GetInstalledPackages() map[string]string {
+	activeBundle := b.bDefs.ActiveBundle
+	bundle, _ := b.bDefs.Bundles[activeBundle]
+	return bundle.Packages
+}
