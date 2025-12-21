@@ -36,7 +36,7 @@ var SwitchCmd = &cobra.Command{
 		}
 
 		if err := bundle.SaveBundle(env); err != nil {
-			fmt.Printf("Error saving bundle: %w", err)
+			fmt.Printf("Error saving bundle: %v", err)
 			return
 		}
 
