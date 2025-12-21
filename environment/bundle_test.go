@@ -277,7 +277,7 @@ func TestAddBundle(t *testing.T) {
 			},
 		}
 
-		err := env.AddBundle("prod")
+		err := env.AddBundle("prod", "Production environment")
 
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
@@ -299,7 +299,7 @@ func TestAddBundle(t *testing.T) {
 			},
 		}
 
-		err := env.AddBundle("dev")
+		err := env.AddBundle("dev", "Development environment")
 
 		if err == nil {
 			t.Fatal("expected error, got nil")
