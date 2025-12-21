@@ -26,13 +26,13 @@ func LoadBundleDefinitions(s *Environment) (*Bundle, error) {
 	return &Bundle{bDefs: &bDefs}, nil
 }
 
-func (e *Bundle) SaveBundle(s *Environment) error {
-	data, err := json.MarshalIndent(e.bDefs, "", "  ")
+func (b *Bundle) SaveBundle(e *Environment) error {
+	data, err := json.MarshalIndent(b.bDefs, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal bundle definitions: %w", err)
 	}
 
-	err = os.WriteFile(s.EnvironmentPath, data, 0644)
+	err = os.WriteFile(e.EnvironmentPath, data, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
@@ -40,8 +40,8 @@ func (e *Bundle) SaveBundle(s *Environment) error {
 	return nil
 }
 
-func (e *Bundle) IsPackageInstalled(bundleName, packageName, version string) bool {
-	env, ok := e.bDefs.Bundles[bundleName]
+func (b *Bundle) IsPackageInstalled(bundleName, packageName, version string) bool {
+	env, ok := b.bDefs.Bundles[bundleName]
 	if !ok {
 		return false
 	}
@@ -58,11 +58,11 @@ func (e *Bundle) IsPackageInstalled(bundleName, packageName, version string) boo
 	return installedVersion == version
 }
 
-func (e *Bundle) AddPackage(bundleName, packageName, version string) error {
+func (b *Bundle) AddPackage(bundleName, packageName, version string) error {
 	if bundleName == "" {
 		bundleName = "default"
 	}
-	env, ok := e.bDefs.Bundles[bundleName]
+	env, ok := b.bDefs.Bundles[bundleName]
 	if !ok {
 		return fmt.Errorf("bundle %q does not exist", bundleName)
 	}
@@ -91,10 +91,10 @@ func (b *Bundle) DeletePackage(packageName string) error {
 	return nil
 }
 
-func (e *Bundle) SetActiveBundle(bundleName string) error {
-	for name, _ := range e.bDefs.Bundles {
+func (b *Bundle) SetActiveBundle(bundleName string) error {
+	for name, _ := range b.bDefs.Bundles {
 		if name == bundleName {
-			e.bDefs.ActiveBundle = bundleName
+			b.bDefs.ActiveBundle = bundleName
 			return nil
 		}
 	}
@@ -102,28 +102,29 @@ func (e *Bundle) SetActiveBundle(bundleName string) error {
 	return fmt.Errorf("bundle %q does not exist", bundleName)
 }
 
-func (e *Bundle) GetActiveBundle() string {
-	return e.bDefs.ActiveBundle
+func (b *Bundle) GetActiveBundle() string {
+	return b.bDefs.ActiveBundle
 }
 
-func (e *Bundle) ListBundles() []string {
-	names := make([]string, 0, len(e.bDefs.Bundles))
-	for name, _ := range e.bDefs.Bundles {
+func (b *Bundle) ListBundles() []string {
+	names := make([]string, 0, len(b.bDefs.Bundles))
+	for name, _ := range b.bDefs.Bundles {
 		names = append(names, name)
 	}
 
 	return names
 }
 
-func (e *Bundle) AddBundle(bundleName string) error {
-	for name, _ := range e.bDefs.Bundles {
+func (b *Bundle) AddBundle(bundleName, description string) error {
+	for name, _ := range b.bDefs.Bundles {
 		if name == bundleName {
 			return fmt.Errorf("bundle %q already exists", bundleName)
 		}
 	}
 
-	e.bDefs.Bundles[bundleName] = &schema.Bundle{
-		Packages: make(map[string]string),
+	b.bDefs.Bundles[bundleName] = &schema.Bundle{
+		Packages:    make(map[string]string),
+		Description: description,
 	}
 
 	return nil
