@@ -56,7 +56,8 @@ var ActivateCmd = &cobra.Command{
 
 func cleanupCurrentBundle(env *environment.Environment, bDefs *environment.Bundle) error {
 	ma := environment.NewManifestArchive(env.ManifestCoreFile)
-	toBeRemovedPkgs := bDefs.GetInstalledPackages()
+	bundleName := bDefs.GetActiveBundle()
+	toBeRemovedPkgs := bDefs.GetInstalledPackages(bundleName)
 	for pkg, _ := range toBeRemovedPkgs {
 		pm, err := ma.ExactMatch(pkg)
 		if err != nil {
@@ -76,7 +77,7 @@ func activateBundle(bundleName string, env *environment.Environment) (*environme
 
 	ma := environment.NewManifestArchive(env.ManifestCoreFile)
 	bDefs.SetActiveBundle(bundleName)
-	packages := bDefs.GetInstalledPackages()
+	packages := bDefs.GetInstalledPackages(bundleName)
 	for pkg, version := range packages {
 		pm, err := ma.ExactMatch(pkg)
 		if err != nil {

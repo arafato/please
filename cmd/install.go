@@ -27,7 +27,9 @@ var InstallCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		packageName := args[0]
 		e := environment.New()
-		e.Initialize()
+		if !e.IsInitialized() {
+			fmt.Printf("Please has not been initialized yet. Run please init.")
+		}
 
 		namespace, pkg, version := parseIdentifier(packageName)
 
