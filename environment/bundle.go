@@ -106,6 +106,15 @@ func (b *Bundle) GetActiveBundle() string {
 	return b.bDefs.ActiveBundle
 }
 
+func (b *Bundle) BundleExists(bundleName string) bool {
+	for name, _ := range b.bDefs.Bundles {
+		if name == bundleName {
+			return true
+		}
+	}
+	return false
+}
+
 func (b *Bundle) ListBundles() []string {
 	names := make([]string, 0, len(b.bDefs.Bundles))
 	for name, _ := range b.bDefs.Bundles {
