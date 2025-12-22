@@ -17,17 +17,17 @@ jobs:
           # macOS builds
           - goos: darwin
             goarch: amd64
-            output_name: myapp-darwin-amd64
+            output_name: please-darwin-amd64
           - goos: darwin
             goarch: arm64
-            output_name: myapp-darwin-arm64
+            output_name: please-darwin-arm64
           # Linux builds (uncomment when ready)
           # - goos: linux
           #   goarch: amd64
-          #   output_name: myapp-linux-amd64
+          #   output_name: please-linux-amd64
           # - goos: linux
           #   goarch: arm64
-          #   output_name: myapp-linux-arm64
+          #   output_name: please-linux-arm64
 
     steps:
       - name: Checkout code
