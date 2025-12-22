@@ -1,0 +1,92 @@
+name: Build and Release (Multi-Platform)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Changed to ubuntu for cross-platform builds
+    strategy:
+      matrix:
+        include:
+          # macOS builds
+          - goos: darwin
+            goarch: amd64
+            output_name: myapp-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            output_name: myapp-darwin-arm64
+          # Linux builds (uncomment when ready)
+          # - goos: linux
+          #   goarch: amd64
+          #   output_name: myapp-linux-amd64
+          # - goos: linux
+          #   goarch: arm64
+          #   output_name: myapp-linux-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod # Or specify version like "1.21"
+
+      - name: Get build info
+        run: |
+          echo "GIT_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Build binary for ${{ matrix.goos }}/${{ matrix.goarch }}
+        run: |
+          mkdir -p dist
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build \
+            -ldflags "-X main.version=${VERSION} -X main.commit=${GIT_COMMIT} -X main.date=${BUILD_DATE}" \
+            -o dist/${{ matrix.output_name }}
+
+      - name: Create archive
+        run: |
+          cd dist
+          tar -czf ${{ matrix.output_name }}-${VERSION}.tar.gz ${{ matrix.output_name }}
+          sha256sum ${{ matrix.output_name }}-${VERSION}.tar.gz > ${{ matrix.output_name }}-${VERSION}.tar.gz.sha256
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.output_name }}
+          path: dist/*.tar.gz*
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          find artifacts -type f -name "*.tar.gz*" -exec cp {} release/ \;
+          ls -lh release/
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: release/*
+          draft: false
+          prerelease: false
+          generateReleaseNotes: true
