@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Please - Packaged Lightweight Environments As Sandboxed Executions
+        </title>
+        <meta
+            name="description"
+            content="A modern package manager for macOS that leverages Apple's native OCI container support"
+        />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: #333;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 900px;
+                width: 100%;
+            }
+
+            .card {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 24px;
+                padding: 60px 50px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                animation: fadeIn 0.6s ease-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            h1 {
+                font-size: 3.5rem;
+                font-weight: 800;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 10px;
+                letter-spacing: -1px;
+            }
+
+            .subtitle {
+                font-size: 1.3rem;
+                color: #666;
+                margin-bottom: 30px;
+                font-weight: 500;
+            }
+
+            .description {
+                font-size: 1.15rem;
+                line-height: 1.8;
+                color: #444;
+                margin-bottom: 30px;
+            }
+
+            .features {
+                list-style: none;
+                margin: 30px 0;
+                padding-left: 0;
+            }
+
+            .features li {
+                font-size: 1.1rem;
+                line-height: 1.8;
+                color: #555;
+                padding-left: 30px;
+                position: relative;
+                margin-bottom: 12px;
+            }
+
+            .features li::before {
+                content: "✓";
+                position: absolute;
+                left: 0;
+                color: #667eea;
+                font-weight: bold;
+                font-size: 1.3rem;
+            }
+
+            .install-section {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 16px;
+                padding: 40px;
+                margin: 40px 0;
+                color: white;
+            }
+
+            .install-section h2 {
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+                font-weight: 700;
+            }
+
+            .code-block {
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 12px;
+                padding: 20px;
+                font-family: "Monaco", "Menlo", "Courier New", monospace;
+                font-size: 0.95rem;
+                overflow-x: auto;
+                position: relative;
+                margin-top: 15px;
+            }
+
+            .code-block code {
+                color: #fff;
+                display: block;
+            }
+
+            .copy-button {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                transition: all 0.2s;
+            }
+
+            .copy-button:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .copy-button:active {
+                transform: translateY(0);
+            }
+
+            .links {
+                display: flex;
+                gap: 15px;
+                margin-top: 30px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                display: inline-block;
+                padding: 14px 30px;
+                border-radius: 12px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 1.05rem;
+                transition: all 0.2s;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            }
+
+            .btn-secondary {
+                background: white;
+                color: #667eea;
+                border: 2px solid #667eea;
+            }
+
+            .btn-secondary:hover {
+                background: #667eea;
+                color: white;
+                transform: translateY(-2px);
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 30px;
+                color: rgba(0, 0, 0, 0.5);
+                font-size: 0.95rem;
+            }
+
+            footer a {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            footer a:hover {
+                text-decoration: underline;
+            }
+
+            @media (max-width: 768px) {
+                .card {
+                    padding: 40px 30px;
+                }
+
+                h1 {
+                    font-size: 2.5rem;
+                }
+
+                .subtitle {
+                    font-size: 1.1rem;
+                }
+
+                .description {
+                    font-size: 1rem;
+                }
+
+                .install-section {
+                    padding: 30px 20px;
+                }
+
+                .code-block {
+                    font-size: 0.85rem;
+                }
+
+                .copy-button {
+                    position: static;
+                    display: block;
+                    margin-top: 10px;
+                    width: 100%;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="card">
+                <h1>Please</h1>
+                <div class="subtitle">
+                    Packaged Lightweight Environments As Sandboxed Executions
+                </div>
+
+                <p class="description">
+                    A modern package manager for macOS that leverages Apple's
+                    native OCI container support to run CLI tools in isolated
+                    Linux environments. Each tool runs in its own container,
+                    eliminating dependency conflicts while providing:
+                </p>
+
+                <ul class="features">
+                    <li>Multiple versions side-by-side</li>
+                    <li>Reproducible development environments</li>
+                    <li>Zero system pollution</li>
+                    <li>Automatic version switching per project</li>
+                </ul>
+
+                <p class="description">
+                    Install tools from curated container images and switch
+                    between versions seamlessly without affecting your system
+                    installation.
+                </p>
+
+                <div class="install-section">
+                    <h2>Quick Install</h2>
+                    <p style="margin-bottom: 15px">
+                        Run this command in your terminal:
+                    </p>
+                    <div class="code-block">
+                        <code id="install-command"
+                            >/bin/bash -c "$(curl -fsSL
+                            https://raw.githubusercontent.com/arafato/please/main/install.sh)"</code
+                        >
+                        <button class="copy-button" onclick="copyToClipboard()">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+
+                <div class="links">
+                    <a
+                        href="https://github.com/arafato/please"
+                        class="btn btn-primary"
+                    >
+                        View on GitHub
+                    </a>
+                    <a
+                        href="https://github.com/arafato/please#readme"
+                        class="btn btn-secondary"
+                    >
+                        Documentation
+                    </a>
+                </div>
+
+                <footer>
+                    Made with ❤️ by
+                    <a href="https://github.com/arafato">arafato</a>
+                </footer>
+            </div>
+        </div>
+
+        <script>
+            function copyToClipboard() {
+                const code =
+                    document.getElementById("install-command").textContent;
+                const button = document.querySelector(".copy-button");
+
+                navigator.clipboard
+                    .writeText(code)
+                    .then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = "Copied!";
+                        button.style.background = "rgba(76, 175, 80, 0.3)";
+
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                            button.style.background =
+                                "rgba(255, 255, 255, 0.2)";
+                        }, 2000);
+                    })
+                    .catch((err) => {
+                        console.error("Failed to copy:", err);
+                        button.textContent = "Failed";
+                        setTimeout(() => {
+                            button.textContent = "Copy";
+                        }, 2000);
+                    });
+            }
+        </script>
+    </body>
+</html>
