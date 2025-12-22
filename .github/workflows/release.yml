@@ -24,10 +24,10 @@ jobs:
           # Linux builds (uncomment when ready)
           # - goos: linux
           #   goarch: amd64
-          #   output_name: please-linux-amd64
+          #   output_name: myapp-linux-amd64
           # - goos: linux
           #   goarch: arm64
-          #   output_name: please-linux-arm64
+          #   output_name: myapp-linux-arm64
 
     steps:
       - name: Checkout code
@@ -70,6 +70,20 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag message
+        id: tag
+        run: |
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' ${{ github.ref_name }})
+          # Store in multiline format for GitHub Actions
+          echo "message<<EOF" >> $GITHUB_OUTPUT
+          echo "$TAG_MESSAGE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -86,6 +100,7 @@ jobs:
         with:
           tag: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
+          body: ${{ steps.tag.outputs.message }}
           artifacts: "release/*"
           draft: false
           prerelease: false
