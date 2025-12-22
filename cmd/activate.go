@@ -7,13 +7,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var SwitchCmd = &cobra.Command{
-	Use:   "switch <bundle>",
-	Short: "Switch to a different bundle and make it active",
-	Long:  "Switch to a different bundle and make it active",
+var ActivateCmd = &cobra.Command{
+	Use:   "activate <bundle>",
+	Short: "activate bundle",
+	Long:  "activate bundle",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
-			fmt.Println("Usage: please switch <bundle>")
+			fmt.Println("Usage: please activate <bundle>")
 			return
 		}
 
@@ -25,13 +25,23 @@ var SwitchCmd = &cobra.Command{
 			return
 		}
 
-		if err := cleanupCurrentBundle(env); err != nil {
+		bDefs, err := environment.LoadBundleDefinitions(env)
+		if err != nil {
+			fmt.Printf("Error loading bundle definitions: %v", err)
+		}
+
+		if !bDefs.BundleExists(bundleName) {
+			fmt.Printf("Bundle %q does not exist\n", bundleName)
+			return
+		}
+
+		if err := cleanupCurrentBundle(env, bDefs); err != nil {
 			fmt.Printf("Error cleaning up current bundle: %v\n", err)
 		}
 
 		bundle, err := activateBundle(bundleName, env)
 		if err != nil {
-			fmt.Printf("Error switching to bundle %q: %v\n", bundleName, err)
+			fmt.Printf("Error activating bundle %q: %v\n", bundleName, err)
 			return
 		}
 
@@ -44,15 +54,9 @@ var SwitchCmd = &cobra.Command{
 	},
 }
 
-func cleanupCurrentBundle(env *environment.Environment) error {
-	bundle, err := environment.LoadBundleDefinitions(env)
-	if err != nil {
-		return fmt.Errorf("Error loading bundle definitions: %w", err)
-	}
-
+func cleanupCurrentBundle(env *environment.Environment, bDefs *environment.Bundle) error {
 	ma := environment.NewManifestArchive(env.ManifestCoreFile)
-
-	toBeRemovedPkgs := bundle.GetInstalledPackages()
+	toBeRemovedPkgs := bDefs.GetInstalledPackages()
 	for pkg, _ := range toBeRemovedPkgs {
 		pm, err := ma.ExactMatch(pkg)
 		if err != nil {
@@ -65,14 +69,14 @@ func cleanupCurrentBundle(env *environment.Environment) error {
 }
 
 func activateBundle(bundleName string, env *environment.Environment) (*environment.Bundle, error) {
-	bundle, err := environment.LoadBundleDefinitions(env)
+	bDefs, err := environment.LoadBundleDefinitions(env)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading bundle definitions: %w", err)
 	}
 
 	ma := environment.NewManifestArchive(env.ManifestCoreFile)
-	bundle.SetActiveBundle(bundleName)
-	packages := bundle.GetInstalledPackages()
+	bDefs.SetActiveBundle(bundleName)
+	packages := bDefs.GetInstalledPackages()
 	for pkg, version := range packages {
 		pm, err := ma.ExactMatch(pkg)
 		if err != nil {
@@ -84,5 +88,5 @@ func activateBundle(bundleName string, env *environment.Environment) (*environme
 		}
 	}
 
-	return bundle, nil
+	return bDefs, nil
 }
