@@ -107,12 +107,8 @@ func (b *Bundle) GetActiveBundle() string {
 }
 
 func (b *Bundle) BundleExists(bundleName string) bool {
-	for name, _ := range b.bDefs.Bundles {
-		if name == bundleName {
-			return true
-		}
-	}
-	return false
+	_, exists := b.bDefs.Bundles[bundleName]
+	return exists
 }
 
 func (b *Bundle) ListBundles() []string {
@@ -153,4 +149,16 @@ func (b *Bundle) GetPackageVersion(pkg string) (string, error) {
 func (b *Bundle) GetInstalledPackages(bundleName string) map[string]string {
 	bundle, _ := b.bDefs.Bundles[bundleName]
 	return bundle.Packages
+}
+
+func (b *Bundle) DeleteBundle(bundleName string) error {
+	if bundleName == b.GetActiveBundle() {
+		return fmt.Errorf("bundle %q is active", bundleName)
+	}
+	if ok := b.BundleExists(bundleName); !ok {
+		return fmt.Errorf("bundle %q does not exist", bundleName)
+	}
+
+	delete(b.bDefs.Bundles, bundleName)
+	return nil
 }
